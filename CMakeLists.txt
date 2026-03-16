@@ -74,3 +74,9 @@ target_link_libraries(voxel_engine
     imgui
     nlohmann_json
 )
+target_precompile_headers(voxel_engine
+  PRIVATE
+    <glm/glm.hpp>
+    <glm/gtc/matrix_transform.hpp>
+    <nlohmann/json.hpp>
+)
