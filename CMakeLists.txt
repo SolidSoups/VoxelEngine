@@ -76,7 +76,12 @@ target_link_libraries(voxel_engine
 )
 target_precompile_headers(voxel_engine
   PRIVATE
+    <glad/glad.h>
+    <GLFW/glfw3.h>
+
     <glm/glm.hpp>
     <glm/gtc/matrix_transform.hpp>
     <nlohmann/json.hpp>
+
+    <string>
 )
