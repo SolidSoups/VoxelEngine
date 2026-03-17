@@ -73,3 +73,6 @@ void ApplicationLayer::CloseApplication(){
 void ApplicationLayer::Destroy() {
   glfwTerminate();
 }
+GLFWwindow* ApplicationLayer::GetWindow(){
+  return ApplicationLayer::myWindow;
+}

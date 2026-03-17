@@ -1,9 +1,7 @@
-#include <iostream>
-#include <print>
-
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "ApplicationLayer.h"
+#include "EditorLayer.h"
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
@@ -14,12 +12,21 @@ int main() {
     return -1;
   }
 
+  EditorLayer::Initialize(ApplicationLayer::GetWindow());
+
   while (!ApplicationLayer::ShouldClose()) {
     glfwPollEvents();
 
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    EditorLayer::BeginFrame();
+
+    EditorLayer::EndFrame();
     ApplicationLayer::SwapBuffers();
   }
 
+  EditorLayer::Shutdown();
   ApplicationLayer::Destroy();
   return 0;
 }

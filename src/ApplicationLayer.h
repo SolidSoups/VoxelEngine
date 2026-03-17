@@ -13,6 +13,7 @@ public:
   static void SwapBuffers();
   static void CloseApplication();
   static void Destroy();
+  static GLFWwindow* GetWindow();
 private:
   static std::string myWindowTitle; 
   static int myWindowHeight, myWindowWidth;
