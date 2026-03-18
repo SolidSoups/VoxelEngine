@@ -3,7 +3,7 @@
 #include <vector>
 #include <glm/glm.hpp>
 
-#define CHUNK_SIZE 4
+#define CHUNK_SIZE 16
 
 using Voxel = uint8_t;
 enum VoxelType : uint8_t {

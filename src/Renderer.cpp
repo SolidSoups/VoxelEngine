@@ -1,11 +1,11 @@
 #include "Renderer.h"
 
-#include <print>
 #include "ApplicationLayer.h"
 
 #include "objects/Shader.h"
 #include "objects/NaiveCube.h"
 #include "objects/Camera.h"
+#include "objects/VoxelChunk.h"
 
 std::unique_ptr<Shader> Renderer::myShader = nullptr;
 std::unique_ptr<NaiveCube> Renderer::myNaiveCube = nullptr;
@@ -30,7 +30,9 @@ void Renderer::DrawCube(glm::ivec3 aPosition, glm::vec3 color) {
   Renderer::myShader->Bind();
 
   // set the model matrix
-  glm::mat4 model = glm::translate(glm::mat4(1.0), glm::vec3(aPosition.x, aPosition.y, aPosition.z));
+  float worldScale = 4.0f / CHUNK_SIZE;
+  glm::mat4 model = glm::translate(glm::mat4(1.0), glm::vec3(aPosition) * worldScale);
+  model = glm::scale(model, glm::vec3(worldScale));
   Renderer::myShader->setMatrix4("model", model);
 
   // set view and projection for shader
@@ -42,6 +44,7 @@ void Renderer::DrawCube(glm::ivec3 aPosition, glm::vec3 color) {
 
   // set color
   Renderer::myShader->setVec3("color", color);
+
 
   Renderer::myNaiveCube->Draw();
 }
