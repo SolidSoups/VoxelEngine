@@ -3,6 +3,9 @@
 class NaiveCube{
 public:
   NaiveCube();
+  ~NaiveCube();
+
+  void Draw();
 
 private:
   unsigned int myVAO = 0;

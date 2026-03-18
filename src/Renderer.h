@@ -1,6 +1,9 @@
 #pragma once
 
-#include "objects/Shader.h"
+#include <memory>
+class NaiveCube;
+class Shader;
+struct Camera;
 
 #define VERT_PATH "shaders/vert.glsl"
 #define FRAG_PATH "shaders/frag.glsl"
@@ -13,6 +16,8 @@ public:
   static void DrawCube();
 
 private:
-  static Shader myShader;
+  static std::unique_ptr<Shader> myShader;
+  static std::unique_ptr<NaiveCube> myNaiveCube;
+  static std::unique_ptr<Camera> myCamera;
 };
 

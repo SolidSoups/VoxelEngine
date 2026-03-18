@@ -4,20 +4,21 @@
 #include <iostream>
 #include <print>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "../helpers/FileSystem.h"
 
 unsigned int compileShader(const char* someCode, unsigned int type){
-  unsigned int shaderID;
-  int success;
-  char infoLog[512];
-
   // create shader 
-  shaderID = glCreateShader(type);
+  unsigned int shaderID = glCreateShader(type);
   glShaderSource(shaderID, 1, &someCode, NULL);
 
   glCompileShader(shaderID);
 
   // get error status, log status if failed
+  char infoLog[512];
+  int success;
   glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
   if(!success){
     glGetShaderInfoLog(shaderID, 512, NULL, infoLog);
@@ -75,6 +76,7 @@ Shader::Shader(const char *aVertPath, const char *aFragPath) {
     return;
   }
 
+  myID = newProgram;
   myIsValid = true;
 }
 
@@ -103,5 +105,39 @@ Shader& Shader::operator=(Shader&& other){
 
 void Shader::Bind(){
   if(myID) glUseProgram(myID);
-  else std::print(stderr, "Cannot bind a failed shader");
+  else std::print("SHADER IS INVALID!");
 }
+
+
+void Shader::setVec2(const char *name, const glm::vec2 &value){
+    glUniform2fv(glGetUniformLocation(myID, name), 1, glm::value_ptr(value));
+}
+void Shader::setVec3(const char* name, const glm::vec3& value) {
+    glUniform3fv(glGetUniformLocation(myID, name), 1, glm::value_ptr(value));
+}
+
+void Shader::setVec4(const char* name, const glm::vec4& value) {
+    glUniform4fv(glGetUniformLocation(myID, name), 1, glm::value_ptr(value));
+}
+
+void Shader::setBool(const char* name, bool value) {
+    glUniform1i(glGetUniformLocation(myID, name), (int)value);
+}
+
+void Shader::setInt(const char* name, int value) {
+    glUniform1i(glGetUniformLocation(myID, name), value);
+}
+
+void Shader::setUInt(const char* name, unsigned int value) {
+    glUniform1ui(glGetUniformLocation(myID, name), value);
+}
+
+
+void Shader::setFloat(const char* name, float value) {
+    glUniform1f(glGetUniformLocation(myID, name), value);
+}
+
+void Shader::setMatrix4(const char* name, const glm::mat4& value) {
+    glUniformMatrix4fv(glGetUniformLocation(myID, name), 1, GL_FALSE, glm::value_ptr(value));
+}
+

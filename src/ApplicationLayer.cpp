@@ -76,3 +76,8 @@ void ApplicationLayer::Destroy() {
 GLFWwindow* ApplicationLayer::GetWindow(){
   return ApplicationLayer::myWindow;
 }
+
+
+glm::vec2 ApplicationLayer::GetWindowSize(){
+  return {myWindowWidth, myWindowHeight};
+}

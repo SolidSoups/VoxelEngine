@@ -13,6 +13,7 @@ public:
   static void SwapBuffers();
   static void CloseApplication();
   static void Destroy();
+  static glm::vec2 GetWindowSize();
   static GLFWwindow* GetWindow();
 private:
   static std::string myWindowTitle; 
