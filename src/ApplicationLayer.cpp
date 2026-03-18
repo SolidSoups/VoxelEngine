@@ -28,6 +28,7 @@ bool ApplicationLayer::Initialize(const std::string &aWindowTitle,
   ApplicationLayer::myWindowHeight = aWindowHeight;
   ApplicationLayer::myWindowWidth = aWindowWidth;
 
+  glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
