@@ -13,7 +13,7 @@ public:
   Renderer() = delete;
   static void Initialize();
   static void Destroy();
-  static void DrawCube();
+  static void DrawCube(glm::ivec3 aPosition, glm::vec3 color);
 
 private:
   static std::unique_ptr<Shader> myShader;

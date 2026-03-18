@@ -26,8 +26,12 @@ void Renderer::Destroy() {
   // nothing to do
 }
 
-void Renderer::DrawCube() {
+void Renderer::DrawCube(glm::ivec3 aPosition, glm::vec3 color) {
   Renderer::myShader->Bind();
+
+  // set the model matrix
+  glm::mat4 model = glm::translate(glm::mat4(1.0), glm::vec3(aPosition.x, aPosition.y, aPosition.z));
+  Renderer::myShader->setMatrix4("model", model);
 
   // set view and projection for shader
   glm::vec2 windowSize = ApplicationLayer::GetWindowSize();
@@ -35,6 +39,9 @@ void Renderer::DrawCube() {
   Renderer::myShader->setMatrix4("view", Renderer::myCamera->getViewMatrix());
   Renderer::myShader->setMatrix4(
       "projection", Renderer::myCamera->getProjectionMatrix(aspect));
+
+  // set color
+  Renderer::myShader->setVec3("color", color);
 
   Renderer::myNaiveCube->Draw();
 }

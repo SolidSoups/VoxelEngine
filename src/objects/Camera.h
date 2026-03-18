@@ -4,8 +4,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 struct Camera {
-  glm::vec3 position{-2.0f, 2.0f, -2.0f};
-  glm::vec3 target{0.0f, 0.0f, 0.0f};
+  glm::vec3 position{-2.0f, 4.0f, -2.0f};
+  glm::vec3 target{2.0f, 0.0f, 2.0f};
   glm::vec3 worldUp{0.0f, 1.0f, 0.0f};
 
   inline glm::mat4 getViewMatrix() const {
