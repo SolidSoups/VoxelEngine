@@ -34,13 +34,13 @@ void Renderer::SetAspectRatio(float aAspectRatio) {
 }
 
 void Renderer::DrawCube(const glm::vec3 &aPosition, const glm::mat4 &aTransform,
-                        const glm::vec3 &aColor) {
+                        const glm::vec3 &aColor, Camera &aCamera) {
   Renderer::myShader->Bind();
 
   // set uniforms
-  Renderer::myShader->setMatrix4("view", Renderer::myCamera->getViewMatrix());
+  Renderer::myShader->setMatrix4("view", aCamera.getViewMatrix());
   Renderer::myShader->setMatrix4(
-      "projection", Renderer::myCamera->getProjMatrix(Renderer::myAspectRatio));
+      "projection", aCamera.getProjMatrix(Renderer::myAspectRatio));
   Renderer::myShader->setVec3("color", aColor);
   Renderer::myShader->setMatrix4("transform", aTransform);
 

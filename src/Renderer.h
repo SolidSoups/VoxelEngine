@@ -13,7 +13,10 @@ public:
   Renderer() = delete;
   static void Initialize();
   static void Destroy();
-  static void DrawCube(const glm::vec3 &aPosition, const glm::mat4 &aTransform, const glm::vec3 &aColor);
+  static void DrawCube(
+    const glm::vec3 &aPosition, const glm::mat4 &aTransform, const glm::vec3 &aColor,
+    Camera& aCamera
+  );
   static void SetAspectRatio(float aAspectRatio);
 
 private:

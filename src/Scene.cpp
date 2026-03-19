@@ -1,6 +1,7 @@
 #include "Scene.h"
 
 #include "Renderer.h"
+#include "objects/Camera.h"
 
 Scene::Scene() {
   // noop
@@ -17,7 +18,7 @@ Scene::Scene() {
   voxelChunk[2, 1, 2] = VoxelType::STONE;
 }
 
-void Scene::Render(){
+void Scene::Render(Camera& aMainCamera){
   auto nonEmptyVoxels = voxelChunk.getNonEmpty();
 
   glm::vec3 color{1.0f};
@@ -38,6 +39,6 @@ void Scene::Render(){
     else if(voxel == VoxelType::STONE)
       color = glm::vec3{0.53f, 0.55f, 0.55f};
 
-    Renderer::DrawCube(position, transform, color); 
+    Renderer::DrawCube(position, transform, color, aMainCamera); 
   }
 }
