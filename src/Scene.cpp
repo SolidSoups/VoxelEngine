@@ -10,7 +10,7 @@ Scene::Scene() {
   // Create an interesting scene
 
   VoxelPainter::PaintRect({2, 2, 2}, {3, 8, 4}, voxelChunk);
-  VoxelPainter::SetBrushColor(VoxelType::SAND);
+  VoxelPainter::SetBrushColor(VoxelType::VoxelType_SAND);
   VoxelPainter::PaintVoxel({0, 0, 0}, voxelChunk);
   VoxelPainter::PaintVoxel({0, 0, CHUNK_SIZE-1}, voxelChunk);
   VoxelPainter::PaintVoxel({CHUNK_SIZE-1, 0, 0}, voxelChunk);
@@ -38,9 +38,9 @@ void Scene::Render() {
     transform = glm::scale(transform, glm::vec3(worldScale));
 
     // determine color
-    if (voxel == VoxelType::SAND)
+    if (voxel == VoxelType::VoxelType_SAND)
       color = glm::vec3{0.96f, 0.84f, 0.69f};
-    else if (voxel == VoxelType::STONE)
+    else if (voxel == VoxelType::VoxelType_STONE)
       color = glm::vec3{0.53f, 0.55f, 0.55f};
 
     Renderer::DrawCube(transform, color);

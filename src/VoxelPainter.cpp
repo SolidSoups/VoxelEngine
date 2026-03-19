@@ -5,10 +5,15 @@
 #include "objects/VoxelChunk.h"
 #include "helpers/AABB.h"
 
-VoxelType VoxelPainter::myBrushColor = STONE;
+VoxelType VoxelPainter::myBrushColor = VoxelType_EMPTY;
+BrushType VoxelPainter::myBrushType = BrushType_VOXEL;
 
 void VoxelPainter::SetBrushColor(VoxelType aVoxelType) {
   VoxelPainter::myBrushColor = aVoxelType;
+}
+
+void VoxelPainter::SetBrushType(BrushType aBrushType) {
+  VoxelPainter::myBrushType = aBrushType;
 }
 
 void VoxelPainter::PaintSphere(const glm::ivec3 &aGridCoordinate, int aRadius,
@@ -44,6 +49,6 @@ void VoxelPainter::PaintRect(const glm::ivec3 &aGridPosA,
       }
 }
 
-void VoxelPainter::PaintVoxel(const glm::ivec3 &aGridPos, VoxelChunk& aChunk){
+void VoxelPainter::PaintVoxel(const glm::ivec3 &aGridPos, VoxelChunk &aChunk) {
   aChunk[aGridPos.x, aGridPos.y, aGridPos.z] = VoxelPainter::myBrushColor;
 }

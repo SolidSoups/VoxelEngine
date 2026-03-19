@@ -3,9 +3,10 @@
 using VoxelIndex = uint16_t;
 using Voxel = uint8_t;
 enum VoxelType : uint8_t {
-  EMPTY = 0,
-  STONE = 1,
-  SAND = 2,
+  VoxelType_EMPTY = 0,
+  VoxelType_STONE = 1,
+  VoxelType_SAND = 2,
 
-  MAX
+  VoxelType_PREVIEW,
+  VoxelType_MAX
 };

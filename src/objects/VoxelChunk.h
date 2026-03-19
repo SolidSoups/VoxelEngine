@@ -11,7 +11,7 @@
 struct VoxelChunk {
   VoxelChunk() {
     voxels = new Voxel[CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE];
-    memset(voxels, VoxelType::EMPTY,
+    memset(voxels, VoxelType::VoxelType_EMPTY,
            sizeof(Voxel) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE);
   }
   ~VoxelChunk() { delete[] voxels; }
@@ -39,7 +39,7 @@ public:
     for (int z = 0; z < CHUNK_SIZE; z++)
       for (int y = 0; y < CHUNK_SIZE; y++)
         for (int x = 0; x < CHUNK_SIZE; x++) {
-          if ((*this)[x, y, z] != EMPTY)
+          if ((*this)[x, y, z] != VoxelType_EMPTY)
             result.push_back({x, y, z});
         }
     return result;

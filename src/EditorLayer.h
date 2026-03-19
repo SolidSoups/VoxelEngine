@@ -4,6 +4,7 @@
 
 struct GLFWwindow;
 class KeybindsEditor;
+class BrushEditor;
 
 class EditorLayer{
 public:
@@ -14,4 +15,5 @@ public:
 
 private:
   static std::unique_ptr<KeybindsEditor> myKeybindsEditor;
+  static std::unique_ptr<BrushEditor> myBrushEditor;
 };

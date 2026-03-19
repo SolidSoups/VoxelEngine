@@ -5,8 +5,10 @@
 #include <imgui_impl_opengl3.h>
 
 #include "editors/KeybindsEditor.h"
+#include "editors/BrushEditor.h"
 
 std::unique_ptr<KeybindsEditor> EditorLayer::myKeybindsEditor;
+std::unique_ptr<BrushEditor> EditorLayer::myBrushEditor;
 
 void EditorLayer::Initialize(GLFWwindow *aWindow) {
   // Set dear imgui context
@@ -21,15 +23,17 @@ void EditorLayer::Initialize(GLFWwindow *aWindow) {
 
   // initialize editors
   myKeybindsEditor = std::make_unique<KeybindsEditor>();
+  myBrushEditor = std::make_unique<BrushEditor>();
 }
 
 void EditorLayer::BeginFrame() {
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
-  // ImGui::ShowDemoWindow(); // Show demo window! :)
-  
+  ImGui::ShowDemoWindow(); // Show demo window! :)
+
   myKeybindsEditor->Draw();
+  myBrushEditor->Draw();
 }
 
 void EditorLayer::EndFrame() {
@@ -37,7 +41,7 @@ void EditorLayer::EndFrame() {
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void EditorLayer::Shutdown(){
+void EditorLayer::Shutdown() {
   myKeybindsEditor.reset();
 
   ImGui_ImplOpenGL3_Shutdown();
