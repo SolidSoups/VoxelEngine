@@ -21,15 +21,15 @@ void InputLayer::ControlCamera(GLFWwindow* aWindow, CameraController& aCamera){
   glm::vec2 mouseDelta = glm::vec2(mousePosition) - myPrevMousePosition;
 
   // get the input state
-  bool leftMouseButton = glfwGetMouseButton(aWindow, GLFW_MOUSE_BUTTON_LEFT);
-  bool rightMouseButton = glfwGetMouseButton(aWindow, GLFW_MOUSE_BUTTON_RIGHT);
+  bool panButton = glfwGetMouseButton(aWindow, GLFW_MOUSE_BUTTON_MIDDLE);
+  bool orbitButton = glfwGetMouseButton(aWindow, GLFW_MOUSE_BUTTON_RIGHT);
 
   // PAN!
-  if(leftMouseButton){
+  if(panButton){
     aCamera.Pan(mouseDelta);
   }
   // ORBIT
-  else if(rightMouseButton){
+  else if(orbitButton){
     aCamera.Orbit(mouseDelta);
   }
 
