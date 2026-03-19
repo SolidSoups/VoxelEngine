@@ -3,16 +3,10 @@
 #include <vector>
 #include <glm/glm.hpp>
 
+#include "VoxelType.h"
+
 #define CHUNK_SIZE 16
 
-using Voxel = uint8_t;
-enum VoxelType : uint8_t {
-  EMPTY = 0,
-  STONE = 1,
-  SAND = 2,
-
-  MAX
-};
 
 struct VoxelChunk {
   VoxelChunk() {
@@ -60,4 +54,32 @@ public:
     size_t index = x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE;
     return voxels[index];
   }
+
+  Voxel &operator[](VoxelIndex index){
+    return voxels[index];
+  }
+
+  // Query for every voxel index where it matches the predicate
+  template<typename Pred>
+  void QueryVoxels(Pred aPredicate, std::vector<uint16_t>& outIndices){
+    size_t size = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
+    for(uint16_t i=0; i < size; i++){
+      if(aPredicate(i, voxels[i])){
+        outIndices.push_back(i);
+      } 
+    }
+  }
+
 };
+inline glm::ivec3 getVGridPos(VoxelIndex aIndex) {
+  glm::ivec3 result;  
+  result.x = aIndex % CHUNK_SIZE;
+  result.y = (aIndex / CHUNK_SIZE) % CHUNK_SIZE;
+  result.z = aIndex / (CHUNK_SIZE * CHUNK_SIZE);
+  return result;
+}
+
+inline VoxelIndex getVIndex(const glm::ivec3& aGridPosition) {
+  return aGridPosition.x + aGridPosition.y * CHUNK_SIZE + aGridPosition.z * CHUNK_SIZE * CHUNK_SIZE; 
+}
+

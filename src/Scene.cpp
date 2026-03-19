@@ -4,21 +4,21 @@
 
 #include "Renderer.h"
 #include "objects/Camera.h"
+#include "VoxelPainter.h"
 
 Scene::Scene() {
   // Create an interesting scene
 
-  float radius = (float)CHUNK_SIZE / 2.f;
-  glm::vec3 centerPoint{radius};
-  for (int z = 0; z < CHUNK_SIZE; z++)
-    for (int y = 0; y < CHUNK_SIZE; y++)
-      for (int x = 0; x < CHUNK_SIZE; x++) {
-        glm::vec3 position{x, y, z};
-        float distance = glm::length(position - centerPoint);
-        if (distance < radius) {
-          voxelChunk[x, y, z] = (int)(rand() % 3);
-        }
-      }
+  VoxelPainter::PaintRect({2, 2, 2}, {3, 8, 4}, voxelChunk);
+  VoxelPainter::SetBrushColor(VoxelType::SAND);
+  VoxelPainter::PaintVoxel({0, 0, 0}, voxelChunk);
+  VoxelPainter::PaintVoxel({0, 0, CHUNK_SIZE-1}, voxelChunk);
+  VoxelPainter::PaintVoxel({CHUNK_SIZE-1, 0, 0}, voxelChunk);
+  VoxelPainter::PaintVoxel({CHUNK_SIZE-1, 0, CHUNK_SIZE-1}, voxelChunk);
+  VoxelPainter::PaintVoxel({0, CHUNK_SIZE-1, 0}, voxelChunk);
+  VoxelPainter::PaintVoxel({0, CHUNK_SIZE-1, CHUNK_SIZE-1}, voxelChunk);
+  VoxelPainter::PaintVoxel({CHUNK_SIZE-1, CHUNK_SIZE-1, 0}, voxelChunk);
+  VoxelPainter::PaintVoxel({CHUNK_SIZE-1, CHUNK_SIZE-1, CHUNK_SIZE-1}, voxelChunk);
 }
 
 void Scene::Render() {
