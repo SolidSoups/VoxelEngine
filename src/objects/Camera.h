@@ -11,7 +11,7 @@ struct Camera {
   inline glm::mat4 getViewMatrix() const {
     return glm::lookAt(position, target, worldUp);
   }
-  inline glm::mat4 getProjectionMatrix(float aAspectRatio) const {
+  inline glm::mat4 getProjMatrix(float aAspectRatio) const {
     return glm::perspective(glm::radians(myFOV), aAspectRatio, myNearPlane, myFarPlane);
   }
 private:

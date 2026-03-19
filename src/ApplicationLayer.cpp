@@ -80,5 +80,9 @@ GLFWwindow* ApplicationLayer::GetWindow(){
 
 
 glm::vec2 ApplicationLayer::GetWindowSize(){
-  return {myWindowWidth, myWindowHeight};
+  return {ApplicationLayer::myWindowWidth, ApplicationLayer::myWindowHeight};
+}
+
+float ApplicationLayer::GetAspectRatio(){
+  return (float)ApplicationLayer::myWindowWidth / ApplicationLayer::myWindowHeight;
 }

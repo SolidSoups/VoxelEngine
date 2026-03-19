@@ -23,11 +23,21 @@ void Scene::Render(){
   glm::vec3 color{1.0f};
   for(glm::ivec3& pos : nonEmptyVoxels){
     Voxel& voxel = voxelChunk[pos.x, pos.y, pos.z];
+
+    // cast position to vec3
+    glm::vec3 position{pos};
+
+    // determine transform
+    float worldScale = 4.0f / CHUNK_SIZE;
+    glm::mat4 transform = glm::translate(glm::mat4(1.0), position * worldScale);
+    transform = glm::scale(transform, glm::vec3(worldScale));
+
+    // determine color
     if(voxel == VoxelType::SAND)
       color = glm::vec3{0.96f, 0.84f, 0.69f};
     else if(voxel == VoxelType::STONE)
       color = glm::vec3{0.53f, 0.55f, 0.55f};
 
-    Renderer::DrawCube(pos, color); 
+    Renderer::DrawCube(position, transform, color); 
   }
 }

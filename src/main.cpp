@@ -31,6 +31,10 @@ int main() {
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // update renderer aspect ratio
+    // although updates every frame...
+    Renderer::SetAspectRatio(ApplicationLayer::GetAspectRatio());
+
     EditorLayer::BeginFrame();
     myScene.Render();
 

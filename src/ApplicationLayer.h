@@ -14,6 +14,7 @@ public:
   static void CloseApplication();
   static void Destroy();
   static glm::vec2 GetWindowSize();
+  static float GetAspectRatio();
   static GLFWwindow* GetWindow();
 private:
   static std::string myWindowTitle; 
