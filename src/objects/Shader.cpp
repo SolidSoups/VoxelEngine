@@ -94,10 +94,13 @@ Shader::Shader(Shader&& other){
   other.myIsValid = false;
 }
 Shader& Shader::operator=(Shader&& other){
-  myID = other.myID;
-  myIsValid = other.myIsValid;
-  other.myID = 0;
-  other.myIsValid = false;
+  if(this != &other){
+    if(myID) glDeleteProgram(myID);    
+    myID = other.myID;
+    myIsValid = other.myIsValid;
+    other.myID = 0;
+    other.myIsValid = false;
+  }
   return *this;
 }
 
