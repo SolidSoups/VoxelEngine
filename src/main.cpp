@@ -1,3 +1,4 @@
+#include <print>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "ApplicationLayer.h"
@@ -42,7 +43,7 @@ int main() {
 
     // calculate delta time
     float currentTime = glfwGetTime();
-    deltaTime = lastTime - deltaTime;
+    deltaTime = currentTime - lastTime;
     lastTime = currentTime;
 
     // clear background

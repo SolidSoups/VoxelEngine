@@ -15,6 +15,11 @@ void InputLayer::Initialize(GLFWwindow* aWindow){
 }
 
 void InputLayer::ControlCamera(GLFWwindow* aWindow, CameraController& aCamera){
+  // check for reset button
+  if(glfwGetKey(aWindow, GLFW_KEY_F) == GLFW_PRESS){
+    aCamera.Reset();
+  } 
+ 
   // get mouse delta
   glm::dvec2 mousePosition;
   glfwGetCursorPos(aWindow, &mousePosition.x, &mousePosition.y);

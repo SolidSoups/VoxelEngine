@@ -3,18 +3,38 @@
 #include <glm/glm.hpp>
 #include "objects/Camera.h"
 
-void CameraController::MoveCamera(Camera& camera, float dt){
-  float pitchRadians = glm::radians(myPitch);
-  float yawRadians = glm::radians(myYaw);
+#include <print>
+
+void CameraController::MoveCamera(Camera& aCamera, float aDeltaTime){
+  const float TARGET_SPEED = 20.0f;
+  const float ROTATION_SPEED = 15.0f;
+  const float DIST_SPEED = 8.0f;
+  float targetSpeed = 1.0f - glm::exp(-TARGET_SPEED * aDeltaTime);
+  float rotationSpeed = 1.0f - glm::exp(-ROTATION_SPEED * aDeltaTime);
+  float distanceSpeed = 1.0f - glm::exp(-DIST_SPEED * aDeltaTime);
+
+  myCurrentPitch = glm::mix(myCurrentPitch, myPitch, rotationSpeed);
+  myCurrentYaw = glm::mix(myCurrentYaw, myYaw, rotationSpeed);
+  myCurrentOrbitDistance = glm::mix(myCurrentOrbitDistance, myOrbitDistance, distanceSpeed);
+  myCurrentTarget = glm::mix(myCurrentTarget, myTarget, targetSpeed);
+
+  float pitchRadians = glm::radians(myCurrentPitch);
+  float yawRadians = glm::radians(myCurrentYaw);
 
   glm::vec3 desiredPos;
-  desiredPos.x = myTarget.x + myOrbitDistance * glm::cos(pitchRadians) * glm::sin(yawRadians);
-  desiredPos.y = myTarget.y + myOrbitDistance * glm::sin(pitchRadians);
-  desiredPos.z = myTarget.z + myOrbitDistance * glm::cos(pitchRadians) * glm::cos(yawRadians);
+  desiredPos.x = myCurrentTarget.x + myCurrentOrbitDistance * glm::cos(pitchRadians) * glm::sin(yawRadians);
+  desiredPos.y = myCurrentTarget.y + myCurrentOrbitDistance * glm::sin(pitchRadians);
+  desiredPos.z = myCurrentTarget.z + myCurrentOrbitDistance * glm::cos(pitchRadians) * glm::cos(yawRadians);
 
-  float t = 1.0f - glm::exp(-mySmoothSpeed * dt);
-  camera.position = glm::mix(camera.position, desiredPos, t);
-  camera.target = glm::mix(camera.target, myTarget, t);
+  aCamera.position = desiredPos;
+  aCamera.target = myCurrentTarget;
+}
+
+void CameraController::Reset(){
+  myPitch = 45.f;
+  myYaw = 45.f;
+  myOrbitDistance = 5.0f;
+  myTarget = glm::vec3(2.0f);
 }
 
 void CameraController::Zoom(float aScrollY){
