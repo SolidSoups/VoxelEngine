@@ -24,7 +24,7 @@ void InputLayer::UpdateInput(GLFWwindow *aWindow) {
 
 void InputLayer::ControlCamera(GLFWwindow *aWindow, CameraController &aCamera) {
   // check for reset button
-  if (glfwGetKey(aWindow, GLFW_KEY_F) == GLFW_PRESS) {
+  if (glfwGetKey(aWindow, GLFW_KEY_R) == GLFW_PRESS) {
     aCamera.Reset();
   }
 

@@ -4,6 +4,10 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
+#include "editors/KeybindsEditor.h"
+
+std::unique_ptr<KeybindsEditor> EditorLayer::myKeybindsEditor;
+
 void EditorLayer::Initialize(GLFWwindow *aWindow) {
   // Set dear imgui context
   IMGUI_CHECKVERSION();
@@ -14,6 +18,9 @@ void EditorLayer::Initialize(GLFWwindow *aWindow) {
   // setup platform/renderer backends
   ImGui_ImplGlfw_InitForOpenGL(aWindow, true);
   ImGui_ImplOpenGL3_Init();
+
+  // initialize editors
+  myKeybindsEditor = std::make_unique<KeybindsEditor>();
 }
 
 void EditorLayer::BeginFrame() {
@@ -21,6 +28,8 @@ void EditorLayer::BeginFrame() {
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
   // ImGui::ShowDemoWindow(); // Show demo window! :)
+  
+  myKeybindsEditor->Draw();
 }
 
 void EditorLayer::EndFrame() {
@@ -29,6 +38,8 @@ void EditorLayer::EndFrame() {
 }
 
 void EditorLayer::Shutdown(){
+  myKeybindsEditor.reset();
+
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
