@@ -15,16 +15,17 @@ Scene::Scene() {
       for (int x = 0; x < CHUNK_SIZE; x++) {
         glm::vec3 position{x, y, z};
         float distance = glm::length(position - centerPoint);
-        if(distance < radius){
-          voxelChunk[x, y, z] = (int)(rand()%3);
+        if (distance < radius) {
+          voxelChunk[x, y, z] = (int)(rand() % 3);
         }
       }
 }
 
-void Scene::Render(Camera &aMainCamera) {
+void Scene::Render() {
   auto nonEmptyVoxels = voxelChunk.getNonEmpty();
 
   // Iterate over every non-empty voxel
+  const float worldScale = 4.0f / CHUNK_SIZE;
   glm::vec3 color{1.0f};
   for (glm::ivec3 &pos : nonEmptyVoxels) {
     Voxel &voxel = voxelChunk[pos.x, pos.y, pos.z];
@@ -33,7 +34,6 @@ void Scene::Render(Camera &aMainCamera) {
     glm::vec3 position{pos};
 
     // determine transform
-    float worldScale = 4.0f / CHUNK_SIZE;
     glm::mat4 transform = glm::translate(glm::mat4(1.0), position * worldScale);
     transform = glm::scale(transform, glm::vec3(worldScale));
 
@@ -43,6 +43,6 @@ void Scene::Render(Camera &aMainCamera) {
     else if (voxel == VoxelType::STONE)
       color = glm::vec3{0.53f, 0.55f, 0.55f};
 
-    Renderer::DrawCube(position, transform, color, aMainCamera);
+    Renderer::DrawCube(transform, color);
   }
 }

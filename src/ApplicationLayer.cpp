@@ -59,6 +59,11 @@ bool ApplicationLayer::Initialize(const std::string &aWindowTitle,
   return true;
 }
 
+
+void ApplicationLayer::PollEvents(){
+  glfwPollEvents();
+}
+
 bool ApplicationLayer::ShouldClose() {
   return myShouldClose or glfwWindowShouldClose(ApplicationLayer::myWindow);
 }

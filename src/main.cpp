@@ -1,6 +1,3 @@
-#include <print>
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include "ApplicationLayer.h"
 #include "EditorLayer.h"
 #include "Renderer.h"
@@ -21,49 +18,45 @@ int main() {
   EditorLayer::Initialize(ApplicationLayer::GetWindow());
   Renderer::Initialize();
 
+  
+  auto* window = ApplicationLayer::GetWindow();
+
   InputLayer inputLayer;
+  inputLayer.Initialize(window);
   Scene myScene;
   CameraController myCameraController;
   Camera myCamera;
-  
-  // cache window
-  auto* window = ApplicationLayer::GetWindow();
-
-  inputLayer.Initialize(window);
 
 
   float deltaTime = 0.f, lastTime = 0.f;
   while (!ApplicationLayer::ShouldClose()) {
-    glfwPollEvents();
+    ApplicationLayer::PollEvents();
 
-    // escape to close application
-    if(glfwGetKey(window, GLFW_KEY_ESCAPE)){
-      ApplicationLayer::CloseApplication(); 
-    }
+    inputLayer.UpdateInput(window);
 
     // calculate delta time
     float currentTime = glfwGetTime();
     deltaTime = currentTime - lastTime;
     lastTime = currentTime;
 
-    // clear background
-    glClearColor(0, 0, 0, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // update camera aspect ratio
+    myCamera.aspectRatio = ApplicationLayer::GetAspectRatio();
 
+    // control camera
     inputLayer.ControlCamera(window, myCameraController);
     myCameraController.MoveCamera(myCamera, deltaTime);
 
-    // update renderer aspect ratio
-    // although updates every frame...
-    Renderer::SetAspectRatio(ApplicationLayer::GetAspectRatio());
-
+    // draw frame
     EditorLayer::BeginFrame();
-    myScene.Render(myCamera);
+    Renderer::BeginFrame(myCamera);
+    myScene.Render();
 
+    // end frame
     EditorLayer::EndFrame();
     ApplicationLayer::SwapBuffers();
   }
 
+  // Destroy EVERYTHING!
   Renderer::Destroy();
   EditorLayer::Shutdown();
   ApplicationLayer::Destroy();

@@ -10,6 +10,7 @@ public:
                          int aWindowHeight);
   static void Resize(int aNewWindowWidth, int aNewWindowHeight);
   static bool ShouldClose();
+  static void PollEvents();
   static void SwapBuffers();
   static void CloseApplication();
   static void Destroy();

@@ -7,7 +7,7 @@ class Scene{
 public:
   Scene();
 
-  void Render(Camera& aMainCamera);
+  void Render();
 private:
   VoxelChunk voxelChunk;
 };
