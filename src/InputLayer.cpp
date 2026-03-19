@@ -1,13 +1,15 @@
 #include "InputLayer.h"
 
-#include <print>
 #include <glm/glm.hpp>
 #include <GLFW/glfw3.h>
+#include <imgui_impl_glfw.h>
+
 #include "CameraController.h"
 #include "ApplicationLayer.h"
 
 double ourScrollAccum = 0.0f;
 void scroll_callback(GLFWwindow *aWindow, double aXOffset, double aYOffset) {
+  ImGui_ImplGlfw_ScrollCallback(aWindow, aXOffset, aYOffset);
   ourScrollAccum += aYOffset;
 }
 
@@ -23,6 +25,9 @@ void InputLayer::UpdateInput(GLFWwindow *aWindow) {
 }
 
 void InputLayer::ControlCamera(GLFWwindow *aWindow, CameraController &aCamera) {
+  if (ImGui::GetIO().WantCaptureMouse)
+    return;
+
   // check for reset button
   if (glfwGetKey(aWindow, GLFW_KEY_R) == GLFW_PRESS) {
     aCamera.Reset();
