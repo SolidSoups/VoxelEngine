@@ -5,9 +5,15 @@ This is an ongoing graduation project. The focus is creating a Voxel engine with
 
 ## Installation
 
+Dependencies (mostly automatically pulled with CMake's FetchContent):
+- [GLFW 3.4](https://github.com/glfw/glfw.git/tree/3.4)
+- 
+
+
 Requirements:
 - C++23
 - CMake 3.16
+
 
 I am using Ninja for the build generator, but you can use whatever you please. Here are the very simple instructions on cloning and building.
 ```
