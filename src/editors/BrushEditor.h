@@ -10,6 +10,7 @@ public:
 private:
   void DrawVoxelType();
   void DrawBrushType();
+  void DrawIVec3(const char* aName, const char* aID, glm::ivec3& aVec3);
   VoxelType mySelectedVoxelType = VoxelType_EMPTY;
-  BrushType mySelectedVoxelBrush = BrushType_VOXEL; 
+  BrushType myBrushType = BrushType_VOXEL; 
 };

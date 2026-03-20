@@ -16,31 +16,32 @@ void BrushEditor::Draw() {
   ImGui::Separator();
 
   static glm::ivec3 drawPositionA{0};
-  ImGui::AlignTextToFramePadding();
-  ImGui::Text("PositionA");
-  ImGui::SameLine();
-  ImGui::DragInt3("##PositionA", &drawPositionA.x, 1, 0, CHUNK_SIZE-1);
-
-  ImGui::Dummy(ImVec2(0, 3));
-
   static glm::ivec3 drawPositionB{0};
-  ImGui::AlignTextToFramePadding();
-  ImGui::Text("PositionB");
-  ImGui::SameLine();
-  ImGui::DragInt3("##PositionB", &drawPositionB.x, 1, 0, CHUNK_SIZE-1);
-
-  ImGui::Dummy(ImVec2(0, 3));
-
   static int radius = 0;
-  ImGui::AlignTextToFramePadding();
-  ImGui::Text("Radius");
-  ImGui::SameLine();
-  ImGui::DragInt("##Radius", &radius, 1, 0);
 
+  ImGui::Dummy(ImVec2(0, 5));
+  if(myBrushType == BrushType_VOXEL){
+    DrawIVec3("Position", "##PositionA", drawPositionA);
+  }
+  else if(myBrushType == BrushType_RECTOID){
+    DrawIVec3("Position A", "##PositionA", drawPositionA);
+    ImGui::Dummy(ImVec2(0, 3));
+    DrawIVec3("Position B", "##PositionB", drawPositionB);
+  }
+  else if(myBrushType == BrushType_SPHERE){
+    DrawIVec3("Radius", "##PositionA", drawPositionA);
+    ImGui::Dummy(ImVec2(0, 3));
+    ImGui::AlignTextToFramePadding();
+    ImGui::Text("Radius");
+    ImGui::SameLine();
+    ImGui::DragInt("##Radius", &radius, 1, 0);
+  }
+
+  ImGui::Dummy(ImVec2(0, 5));
 
   if(ImGui::Button("Paint")){
     VoxelPainter::SetBrushColor(mySelectedVoxelType);
-    VoxelPainter::SetBrushType(mySelectedVoxelBrush);
+    VoxelPainter::SetBrushType(myBrushType);
     VoxelPainter::EditorPaint(drawPositionA, drawPositionB, radius);
   }
   ImGui::SameLine();
@@ -63,8 +64,17 @@ void BrushEditor::DrawVoxelType(){
 }
 void BrushEditor::DrawBrushType(){
   const char *brushTypes[] = {"VOXEL", "RECTOID", "SPHERE"};
-  static int selectedBrushIdx = (int)mySelectedVoxelBrush;
+  static int selectedBrushIdx = (int)myBrushType;
   if(ImGuiHelpers::DrawCombo("Brush Type", brushTypes, IM_ARRAYSIZE(brushTypes), selectedBrushIdx)){
-    mySelectedVoxelBrush = (BrushType)selectedBrushIdx;
+    myBrushType = (BrushType)selectedBrushIdx;
   }
+}
+
+
+
+void BrushEditor::DrawIVec3(const char* aName, const char* aID, glm::ivec3& aVec3){
+  ImGui::AlignTextToFramePadding();
+  ImGui::Text(aName);
+  ImGui::SameLine();
+  ImGui::DragInt3(aID, &aVec3.x, 1, 0, CHUNK_SIZE-1);
 }
