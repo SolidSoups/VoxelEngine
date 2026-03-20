@@ -1,5 +1,6 @@
 #include "VoxelPainter.h"
 
+#include <print>
 #include <vector>
 
 #include "objects/VoxelChunk.h"
@@ -7,6 +8,7 @@
 
 VoxelType VoxelPainter::myBrushColor = VoxelType_EMPTY;
 BrushType VoxelPainter::myBrushType = BrushType_VOXEL;
+VoxelChunk* VoxelPainter::myCurrentChunk = nullptr;
 
 void VoxelPainter::SetBrushColor(VoxelType aVoxelType) {
   VoxelPainter::myBrushColor = aVoxelType;
@@ -14,6 +16,28 @@ void VoxelPainter::SetBrushColor(VoxelType aVoxelType) {
 
 void VoxelPainter::SetBrushType(BrushType aBrushType) {
   VoxelPainter::myBrushType = aBrushType;
+}
+void VoxelPainter::SetCurrentChunk(VoxelChunk* aChunk){
+  VoxelPainter::myCurrentChunk = aChunk;
+}
+
+void VoxelPainter::EditorPaint(const glm::ivec3& aGridPosA, const glm::ivec3& aGridPosB, int aRadius){
+  if(VoxelPainter::myCurrentChunk){
+    switch(VoxelPainter::myBrushType){
+      case BrushType_VOXEL:
+        PaintVoxel(aGridPosA, *VoxelPainter::myCurrentChunk);
+        break;
+      case BrushType_RECTOID:
+        PaintRect(aGridPosA, aGridPosB, *VoxelPainter::myCurrentChunk);
+        break;
+      case BrushType_SPHERE:
+        PaintSphere(aGridPosA, aRadius, *VoxelPainter::myCurrentChunk);
+        break;
+      default:
+        std::println("Brush type {0} not implemented yet", (int)VoxelPainter::myBrushType);
+        break;
+    }
+  }
 }
 
 void VoxelPainter::PaintSphere(const glm::ivec3 &aGridCoordinate, int aRadius,

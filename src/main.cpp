@@ -4,6 +4,7 @@
 #include "Scene.h"
 #include "InputLayer.h"
 #include "CameraController.h"
+#include "VoxelPainter.h"
 #include "objects/Camera.h"
 
 #define WINDOW_WIDTH 1920
@@ -27,6 +28,7 @@ int main() {
   CameraController myCameraController;
   Camera myCamera;
 
+  VoxelPainter::SetCurrentChunk(&myScene.GetVoxelChunk());
 
   float deltaTime = 0.f, lastTime = 0.f;
   while (!ApplicationLayer::ShouldClose()) {
