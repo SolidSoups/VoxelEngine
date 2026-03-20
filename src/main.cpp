@@ -50,6 +50,7 @@ int main() {
     EditorLayer::BeginFrame();
     Renderer::BeginFrame(myCamera);
     myScene.Render();
+    Renderer::DrawVoxelGrid();
 
     // end frame
     EditorLayer::EndFrame();

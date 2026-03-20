@@ -5,8 +5,6 @@
 
 #include "VoxelType.h"
 
-#define CHUNK_SIZE 16
-
 
 struct VoxelChunk {
   VoxelChunk() {

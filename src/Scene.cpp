@@ -8,7 +8,6 @@
 
 Scene::Scene() {
   // Create an interesting scene
-
   VoxelPainter::SetBrushColor(VoxelType_STONE);
   VoxelPainter::PaintRect({2, 2, 2}, {3, 8, 4}, voxelChunk);
   VoxelPainter::SetBrushColor(VoxelType_SAND);
