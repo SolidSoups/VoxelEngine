@@ -5,10 +5,14 @@ This is an ongoing graduation project. The focus is creating a Voxel engine with
 
 ## Installation
 
-Dependencies (mostly automatically pulled with CMake's FetchContent):
-- [GLFW 3.4](https://github.com/glfw/glfw.git/tree/3.4)
-- 
+Dependencies:
+- [GLFW 3.4](https://github.com/glfw/glfw/tree/3.4)
+- [glad (gl=4.6)](https://glad.dav1d.de/)
+- [glm 1.0.3](https://github.com/g-truc/glm/tree/1.0.3)
+- [imgui v1.92.6-docking](https://github.com/ocornut/imgui/tree/v1.92.6-docking)
+- [nlohmann/json v3.12.0](https://github.com/nlohmann/json/tree/v3.12.0)
 
+Most dependencies are automatically pulled with CMake's FetchContent, so it will be fetched during compilation.
 
 Requirements:
 - C++23
