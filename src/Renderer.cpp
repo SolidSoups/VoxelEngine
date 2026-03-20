@@ -13,7 +13,7 @@ void Renderer::Initialize() {
 
   // set winding order
   glFrontFace(GL_CCW);
-  glDisable(GL_CULL_FACE);
+  glEnable(GL_CULL_FACE);
   glEnable(GL_DEPTH_TEST);
 }
 

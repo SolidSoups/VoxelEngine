@@ -15,23 +15,29 @@ std::vector<float> ourCubeVertices = {
   0.5f, -0.5f,  0.5f // lower top right
 };
 std::vector<unsigned int> ourCubeIndices = {
-  0, 2, 1,
-  2, 3, 1,
+  // +Y face
+  0, 1, 2,
+  1, 3, 2,
 
-  4, 6, 0,
-  6, 2, 0,
+  // +Z face
+  1, 5, 3,
+  5, 7, 3,
 
-  7, 2, 6, 
-  7, 3, 2,
+  // +X face
+  3, 7, 2,
+  7, 6, 2,
 
-  7, 5, 3,
-  5, 1, 3,
+  // -Z face
+  2, 4, 0,
+  6, 4, 2,
 
-  5, 0, 1,
-  4, 0, 5,
+  // -X face
+  0, 4, 1,
+  4, 5, 1,
 
-  6, 5, 4,
-  6, 7, 5
+  // -Y face
+  5, 4, 7,
+  4, 6, 7
 };
 }
 
