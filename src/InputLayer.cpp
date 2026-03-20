@@ -40,7 +40,7 @@ void InputLayer::ControlCamera(GLFWwindow *aWindow, CameraController &aCamera) {
 
   // get the input state
   bool panButton = glfwGetMouseButton(aWindow, GLFW_MOUSE_BUTTON_MIDDLE);
-  bool orbitButton = glfwGetMouseButton(aWindow, GLFW_MOUSE_BUTTON_RIGHT);
+  bool orbitButton = glfwGetMouseButton(aWindow, GLFW_MOUSE_BUTTON_RIGHT) && glfwGetKey(aWindow, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
 
   // PAN!
   if (panButton) {

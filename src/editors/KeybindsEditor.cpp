@@ -4,14 +4,14 @@
 
 void KeybindsEditor::Draw(){
   ImGui::Begin("Controls");
-  ImGui::Text("Mouse");
-  ImGui::BulletText("RMB + Drag - Orbit");
-  ImGui::BulletText("MMB + Drag - Pan");
-  ImGui::BulletText("Scroll - Zoom");
+  ImGui::Text("Viewport");
+  ImGui::BulletText("Orbit -- Shift + RMB + Drag");
+  ImGui::BulletText("Pan -- MMD + Drag");
+  ImGui::BulletText("Zoom -- Scroll");
+  ImGui::BulletText("Reset Camera -- R");
   ImGui::Separator();
-  ImGui::Text("Keyboard");
-  ImGui::BulletText("R - Reset Camera");
-  ImGui::BulletText("ESC - Close Application");
+  ImGui::Text("Application");
+  ImGui::BulletText("Close Application -- ESC");
   ImGui::End();
 }
 
