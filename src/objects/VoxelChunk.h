@@ -31,6 +31,19 @@ struct VoxelChunk {
     return *this;
   }
 
+  // return a reference, so that this voxel could also be changed
+  Voxel &operator[](int x, int y, int z) {
+    size_t index = x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE;
+    return voxels[index];
+  }
+
+  Voxel &operator[](VoxelIndex index){
+    return voxels[index];
+  }
+
+  // returns the length of every side of the voxel chunk
+  inline size_t GetSize() const { return CHUNK_SIZE; }
+
 public:
   std::vector<glm::ivec3> getNonEmpty() {
     std::vector<glm::ivec3> result;
@@ -41,20 +54,6 @@ public:
             result.push_back({x, y, z});
         }
     return result;
-  }
-
-public:
-  // flat array to store voxels
-  Voxel *voxels;
-
-  // return a reference, so that this voxel could also be changed
-  Voxel &operator[](int x, int y, int z) {
-    size_t index = x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE;
-    return voxels[index];
-  }
-
-  Voxel &operator[](VoxelIndex index){
-    return voxels[index];
   }
 
   // Query for every voxel index where it matches the predicate
@@ -68,6 +67,8 @@ public:
     }
   }
 
+public:
+  Voxel *voxels;
 };
 inline glm::ivec3 getVGridPos(VoxelIndex aIndex) {
   glm::ivec3 result;  

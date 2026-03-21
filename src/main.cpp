@@ -3,6 +3,7 @@
 #include "Renderer.h"
 #include "Scene.h"
 #include "InputLayer.h"
+#include "PhysicsRuntime.h"
 #include "CameraController.h"
 #include "VoxelPainter.h"
 #include "objects/Camera.h"
@@ -27,6 +28,8 @@ int main() {
   Scene myScene;
   CameraController myCameraController;
   Camera myCamera;
+  PhysicsRuntime physicsRuntime(myScene);
+
 
   VoxelPainter::SetCurrentChunk(&myScene.GetVoxelChunk());
 
@@ -40,6 +43,9 @@ int main() {
     float currentTime = glfwGetTime();
     deltaTime = currentTime - lastTime;
     lastTime = currentTime;
+
+    // do physics step
+    physicsRuntime.Update(deltaTime);
 
     // update camera aspect ratio
     myCamera.aspectRatio = ApplicationLayer::GetAspectRatio();
