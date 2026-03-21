@@ -45,6 +45,10 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(nlohmann_json)
 
+# stb_image.h
+add_library(stb INTERFACE)
+target_include_directories(stb INTERFACE ${CMAKE_SOURCE_DIR}/external/stb)
+
 
 add_library(imgui STATIC
   ${imgui_SOURCE_DIR}/imgui.cpp
@@ -73,6 +77,7 @@ target_link_libraries(voxel_engine
     glm
     imgui
     nlohmann_json
+    stb
 )
 target_precompile_headers(voxel_engine
   PRIVATE
