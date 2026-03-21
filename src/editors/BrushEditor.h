@@ -3,9 +3,9 @@
 #include "../objects/VoxelType.h"
 #include "../objects/PaintType.h"
 
-class BrushEditor {
+class BrushEditor{
 public:
-  void Draw();
+  void Draw(); 
 
 private:
   void DrawVoxelType();

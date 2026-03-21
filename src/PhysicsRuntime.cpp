@@ -30,13 +30,13 @@ void PhysicsRuntime::RunStepped() {
 
 void PhysicsRuntime::RunAuto(float aDeltaTime) {
   // we don't want division by zero
-  if (myStepsPerSecond == 0) {
+  if (stepsPerSecond == 0) {
     std::println(stderr, "Steps per second is zero, cannot step!");
     return;
   }
 
   // get the amount of seconds per step per second
-  const double tickRate = 1.0 / myStepsPerSecond;
+  const double tickRate = 1.0 / stepsPerSecond;
 
   // run accumulation loop
   myTimeAccumulator += aDeltaTime;
@@ -47,7 +47,6 @@ void PhysicsRuntime::RunAuto(float aDeltaTime) {
 }
 
 void PhysicsRuntime::SimulateOneStep() {
-  std::println("Stepped forward! Step count: {0}", myStepClock);
   myEngine->SimulateChunk();
   myStepClock++;
 }

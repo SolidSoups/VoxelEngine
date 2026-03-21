@@ -31,6 +31,8 @@ int main() {
   PhysicsRuntime physicsRuntime(myScene);
 
 
+  EditorLayer::AddRuntimeEditor(&physicsRuntime);
+
   VoxelPainter::SetCurrentChunk(&myScene.GetVoxelChunk());
 
   float deltaTime = 0.f, lastTime = 0.f;

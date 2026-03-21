@@ -17,13 +17,23 @@ public:
   PhysicsRuntime(Scene &aScene);
   ~PhysicsRuntime();
   void Update(float aDeltaTime);
-  inline void SetMode(RuntimeMode aRuntimeMode) {
-    myRuntimeMode = aRuntimeMode;
-  }
   inline void Reset() {
     myTimeAccumulator = 0.0f;
     myStepClock = 0;
   }
+  inline RuntimeMode GetRuntimeMode() const {
+    return myRuntimeMode;
+  }
+  inline int GetStepCount() const {
+    return myStepClock;
+  }
+  inline void SetRuntimeMode(RuntimeMode aRuntimeMode) {
+    myRuntimeMode = aRuntimeMode;
+  }
+  inline void StepForward() {
+    myCanRunNextStep = true;
+  }
+  int stepsPerSecond = 1;
 private:
 
   void RunAuto(float aDeltaTime);
@@ -36,6 +46,5 @@ private:
   bool myCanRunNextStep = false;
 
   double myTimeAccumulator = 0.0f;
-  uint8_t myStepsPerSecond = 1;
   uint32_t myStepClock = 0;
 };
