@@ -4,21 +4,20 @@
 #include "PhysicsEngine.h"
 #include "Scene.h"
 
-PhysicsRuntime::PhysicsRuntime(Scene& aScene) {
-  myEngine = new PhysicsEngine(aScene); 
+PhysicsRuntime::PhysicsRuntime(Scene &aScene) {
+  myEngine = new PhysicsEngine(aScene);
 }
-PhysicsRuntime::~PhysicsRuntime(){
-  if(myEngine) delete myEngine;
+PhysicsRuntime::~PhysicsRuntime() {
+  if (myEngine)
+    delete myEngine;
 }
 
 void PhysicsRuntime::Update(float aDeltaTime) {
   if (myRuntimeMode == RuntimeMode_RUNNING) {
     RunAuto(aDeltaTime);
-  } else if (myRuntimeMode == RuntimeMode_STEPPING) {
+  } else if (myRuntimeMode == RuntimeMode_PAUSED) {
     RunStepped();
-  } else if (myRuntimeMode == RuntimeMode_PAUSED)
-    return;
-  else if (myRuntimeMode == RuntimeMode_STOPPED)
+  } else if (myRuntimeMode == RuntimeMode_STOPPED)
     return;
 }
 void PhysicsRuntime::RunStepped() {

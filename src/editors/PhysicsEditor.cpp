@@ -19,8 +19,7 @@ void PhysicsEditor::Draw(){
   RuntimeMode currentMode = myRuntime->GetRuntimeMode();
   bool isRunning = 
     currentMode == RuntimeMode_RUNNING or
-    currentMode == RuntimeMode_PAUSED or
-    currentMode == RuntimeMode_STEPPING;
+    currentMode == RuntimeMode_PAUSED;
 
 
   // Run simulation buttons
@@ -51,7 +50,7 @@ void PhysicsEditor::Draw(){
   ImGui::SameLine();
   if(ImGui::Button("Pause")){
     // pause simulation
-    myRuntime->SetRuntimeMode(RuntimeMode_STEPPING);
+    myRuntime->SetRuntimeMode(RuntimeMode_PAUSED);
   }
   ImGui::SameLine();
   if(ImGui::Button("Step")){

@@ -6,8 +6,7 @@ class Scene;
 enum RuntimeMode : uint8_t {
   RuntimeMode_STOPPED = 0,
   RuntimeMode_PAUSED = 1,
-  RuntimeMode_STEPPING = 2,
-  RuntimeMode_RUNNING = 3,
+  RuntimeMode_RUNNING = 2,
 
   RuntimeMode_MAX
 };
