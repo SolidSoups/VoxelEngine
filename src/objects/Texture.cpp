@@ -58,15 +58,18 @@ Texture::Texture(const char *aFilePath, const TextureConfig &aConfig) {
       std::print("Overode anisotropy of {0} with max of {1}",
                  aConfig.anisotropy, aniso);
     }
-    glTexParameterf(GL_TEXTURE_2D, GL_MAX_TEXTURE_MAX_ANISOTROPY, aniso);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, aniso);
   }
 
   // disable row padding (stbi provides tightly packed pixel data)
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
   // upload pixel data
+  this->width = image.width;
+  this->height = image.height;
+  this->channels = image.channels;
   glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataFormat,
-               GL_UNSIGNED_INT, image.data);
+               GL_UNSIGNED_BYTE, image.data);
 
   // generate mip maps
   if(aConfig.mipmap){
@@ -76,7 +79,9 @@ Texture::Texture(const char *aFilePath, const TextureConfig &aConfig) {
   // unbind texture
   glBindTexture(GL_TEXTURE_2D, 0);
 
-  this->width = image.width;
-  this->height = image.height;
-  this->channels = image.channels;
+}
+
+
+Texture::~Texture(){
+  if(id) glDeleteTextures(1, &id);
 }
