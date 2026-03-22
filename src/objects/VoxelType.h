@@ -1,7 +1,7 @@
 #pragma once
 
 
-#define CHUNK_SIZE 16
+#define CHUNK_SIZE 32
 using voxel_index = uint16_t;
 using Voxel = uint8_t;
 enum VoxelType : uint8_t {
