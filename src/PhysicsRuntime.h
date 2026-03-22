@@ -32,6 +32,12 @@ public:
   inline void StepForward() {
     myCanRunNextStep = true;
   }
+  inline float GetAccumulatedTickTime() const {
+    return myTimeAccumulator;
+  }
+  inline float GetTotalTickLength(){
+    return 1.0f / stepsPerSecond;
+  }
   int stepsPerSecond = 1;
 private:
 
