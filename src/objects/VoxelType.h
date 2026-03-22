@@ -2,7 +2,7 @@
 
 
 #define CHUNK_SIZE 16
-using VoxelIndex = uint16_t;
+using voxel_index = uint16_t;
 using Voxel = uint8_t;
 enum VoxelType : uint8_t {
   VoxelType_EMPTY = 0,

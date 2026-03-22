@@ -37,12 +37,12 @@ struct VoxelChunk {
     return voxels[index];
   }
 
-  Voxel &operator[](VoxelIndex index){
+  Voxel &operator[](voxel_index index){
     return voxels[index];
   }
 
   // returns the length of every side of the voxel chunk
-  inline size_t GetSize() const { return CHUNK_SIZE; }
+  inline voxel_index GetSize() const { return CHUNK_SIZE; }
 
 public:
   std::vector<glm::ivec3> getNonEmpty() {
@@ -70,7 +70,7 @@ public:
 public:
   Voxel *voxels;
 };
-inline glm::ivec3 getVGridPos(VoxelIndex aIndex) {
+inline glm::ivec3 getVGridPos(voxel_index aIndex) {
   glm::ivec3 result;  
   result.x = aIndex % CHUNK_SIZE;
   result.y = (aIndex / CHUNK_SIZE) % CHUNK_SIZE;
@@ -78,7 +78,7 @@ inline glm::ivec3 getVGridPos(VoxelIndex aIndex) {
   return result;
 }
 
-inline VoxelIndex getVIndex(const glm::ivec3& aGridPosition) {
+inline voxel_index getVIndex(const glm::ivec3& aGridPosition) {
   return aGridPosition.x + aGridPosition.y * CHUNK_SIZE + aGridPosition.z * CHUNK_SIZE * CHUNK_SIZE; 
 }
 

@@ -45,9 +45,9 @@ void VoxelPainter::PaintSphere(const glm::ivec3 &aGridCoordinate, int aRadius,
   glm::vec3 gridPosition{aGridCoordinate};
 
   // query for voxels in the area
-  std::vector<VoxelIndex> result;
+  std::vector<voxel_index> result;
   aChunk.QueryVoxels(
-      [gridPosition, aRadius](VoxelIndex i, Voxel v) {
+      [gridPosition, aRadius](voxel_index i, Voxel v) {
         glm::vec3 voxelPos{getVGridPos(i)};
         if (glm::length(voxelPos - gridPosition) <= aRadius) {
           return true;
@@ -57,7 +57,7 @@ void VoxelPainter::PaintSphere(const glm::ivec3 &aGridCoordinate, int aRadius,
       result);
 
   // set those voxels
-  for (VoxelIndex &i : result) {
+  for (voxel_index &i : result) {
     aChunk[i] = VoxelPainter::myBrushColor;
   }
 }
