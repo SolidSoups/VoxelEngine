@@ -1,24 +1,9 @@
 #include "Scene.h"
 
-#include <cstdlib>
-
 #include "Renderer.h"
-#include "objects/Camera.h"
 #include "VoxelPainter.h"
 
 Scene::Scene() {
-  // Create an interesting scene
-  VoxelPainter::SetBrushColor(VoxelType_STONE);
-  VoxelPainter::PaintRect({2, 2, 2}, {3, 8, 4}, voxelChunk);
-  VoxelPainter::SetBrushColor(VoxelType_SAND);
-  VoxelPainter::PaintVoxel({0, 0, 0}, voxelChunk);
-  VoxelPainter::PaintVoxel({0, 0, CHUNK_SIZE-1}, voxelChunk);
-  VoxelPainter::PaintVoxel({CHUNK_SIZE-1, 0, 0}, voxelChunk);
-  VoxelPainter::PaintVoxel({CHUNK_SIZE-1, 0, CHUNK_SIZE-1}, voxelChunk);
-  VoxelPainter::PaintVoxel({0, CHUNK_SIZE-1, 0}, voxelChunk);
-  VoxelPainter::PaintVoxel({0, CHUNK_SIZE-1, CHUNK_SIZE-1}, voxelChunk);
-  VoxelPainter::PaintVoxel({CHUNK_SIZE-1, CHUNK_SIZE-1, 0}, voxelChunk);
-  VoxelPainter::PaintVoxel({CHUNK_SIZE-1, CHUNK_SIZE-1, CHUNK_SIZE-1}, voxelChunk);
 }
 
 void Scene::Render() {
