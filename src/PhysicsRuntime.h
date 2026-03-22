@@ -47,7 +47,7 @@ private:
 
 private:
   PhysicsEngine* myEngine; 
-  RuntimeMode myRuntimeMode = RuntimeMode_RUNNING;
+  RuntimeMode myRuntimeMode = RuntimeMode_STOPPED;
   bool myCanRunNextStep = false;
 
   double myTimeAccumulator = 0.0f;

@@ -54,8 +54,39 @@ void PhysicsEngine::SimulateSand(const VoxelContext &ctx) {
   voxel_index indexUnder = ctx.index - ctx.chunkSize;
   Voxel &voxelUnder = ctx.voxels[indexUnder];
 
-  // if empty, move down
+  // if empty, move down and finish
   if (voxelUnder == VoxelType_EMPTY) {
     std::swap(voxelUnder, ctx.voxels[ctx.index]);
+    return;
+  }
+
+  voxel_index candidates[4];
+  size_t count = 0;
+  const voxel_index zSliceSize = ctx.chunkSize * ctx.chunkSize;
+
+  // check diagonal left
+  if (ctx.gridPos.x > 0 && ctx.voxels[indexUnder - 1] == VoxelType_EMPTY) {
+    candidates[count++] = indexUnder - 1;
+  }
+  // check diagonal right
+  if (ctx.gridPos.x < ctx.chunkSize - 1 &&
+      ctx.voxels[indexUnder + 1] == VoxelType_EMPTY) {
+    candidates[count++] = indexUnder + 1;
+  }
+  // check diagonal front
+  if (ctx.gridPos.z < ctx.chunkSize - 1 &&
+      ctx.voxels[indexUnder + zSliceSize] == VoxelType_EMPTY) {
+    candidates[count++] = indexUnder + zSliceSize;
+  }
+  // check diagonal back
+  if (ctx.gridPos.z > 0 &&
+      ctx.voxels[indexUnder - zSliceSize] == VoxelType_EMPTY) {
+    candidates[count++] = indexUnder - zSliceSize;
+  }
+
+  // move to a diagonal candidate with equal chance
+  if (count > 0) {
+    voxel_index chosen = candidates[rand() % count];
+    std::swap(ctx.voxels[ctx.index], ctx.voxels[chosen]);
   }
 }
