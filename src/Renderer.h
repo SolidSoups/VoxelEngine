@@ -21,7 +21,7 @@ public:
   static void BeginFrame(Camera& aCamera);
   static void Destroy();
   static void DrawCube(
-    const glm::mat4 &aTransform, const glm::vec3 &aColor
+    const glm::mat4 &aTransform, int aVoxelType
   );
   static void DrawVoxelGrid();
 

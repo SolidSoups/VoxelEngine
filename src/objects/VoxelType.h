@@ -1,6 +1,9 @@
 #pragma once
 
+
 #include <vector>
+
+#include <glm/vec3.hpp>
 
 #define CHUNK_SIZE 32
 using voxel_index = uint16_t;
@@ -19,4 +22,10 @@ inline std::vector<const char*> ourVoxelNames = {
   "STONE",
   "SAND",
   "WATER"
+};
+inline std::vector<glm::vec3> ourVoxelColors = {
+  {0.0f, 0.0f, 0.0f},       // EMPTY
+  {0.53f, 0.55f, 0.55f},    // STONE
+  {0.96f, 0.88f, 0.69f},    // SAND
+  {0.227f, 0.247f, 0.788f}  // WATER
 };

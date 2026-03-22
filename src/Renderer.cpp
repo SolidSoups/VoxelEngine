@@ -4,6 +4,7 @@
 #include "objects/NaiveCube.h"
 #include "objects/ViewportGrid.h"
 #include "objects/Camera.h"
+#include "objects/VoxelType.h"
 
 std::unique_ptr<Shader> Renderer::myShader = nullptr;
 std::unique_ptr<Shader> Renderer::myGridShader = nullptr;
@@ -15,6 +16,10 @@ void Renderer::Initialize() {
   Renderer::myGridShader = std::make_unique<Shader>(GRID_VERT_PATH, GRID_FRAG_PATH);
   Renderer::myNaiveCube = std::make_unique<NaiveCube>();
   Renderer::myViewportGrid = std::make_unique<ViewportGrid>();
+
+  // set the uVoxelColors uniforms of the voxel shader
+  Renderer::myShader->Bind();
+  glUniform3fv(glGetUniformLocation(Renderer::myShader->GetID(), "uVoxelColors"), ourVoxelColors.size(), &ourVoxelColors[0][0]);
 
   // set winding order
   glFrontFace(GL_CCW);
@@ -54,9 +59,9 @@ void Renderer::DrawVoxelGrid(){
 }
 
 void Renderer::DrawCube(const glm::mat4 &aTransform,
-                        const glm::vec3 &aColor) {
+                        int aVoxelType) {
   Renderer::myShader->Bind();
-  Renderer::myShader->setMatrix4("transform", aTransform);
-  Renderer::myShader->setVec3("color", aColor);
+  Renderer::myShader->setMatrix4("uTransform", aTransform);
+  Renderer::myShader->setInt("uVoxelType", aVoxelType);
   Renderer::myNaiveCube->Draw();
 }
