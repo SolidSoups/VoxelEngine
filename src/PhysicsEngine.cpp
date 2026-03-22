@@ -21,11 +21,19 @@ void PhysicsEngine::SimulateChunk() {
   VoxelChunk &chunk = myScene.GetVoxelChunk();
   const voxel_index chunkSize = chunk.GetSize();
 
+  // We swap which direction on x-z plane we iterate
+  // every frame
+  myFrameCounter++;
+  bool reverseZ = myFrameCounter % 2;
+  bool reverseX = (myFrameCounter / 2) % 2;
+
   // Iterate for every z, from the bottom to top...
   for (voxel_index y = 0; y < chunkSize; y++)
-    for (voxel_index z = 0; z < chunkSize; z++)
-      for (voxel_index x = 0; x < chunkSize; x++) {
+    for (voxel_index zz = 0; zz < chunkSize; zz++) {
+      voxel_index z = reverseZ ? (chunkSize - 1 - zz) : zz;
+      for (voxel_index xx = 0; xx < chunkSize; xx++) {
         // iterate every voxel in this vertical chunk slice...
+        voxel_index x = reverseX ? (chunkSize - 1 - xx) : xx;
         voxel_index index = x + y * chunkSize + z * chunkSize * chunkSize;
         Voxel &voxel = chunk[index];
         // skip all empty voxels
@@ -45,6 +53,7 @@ void PhysicsEngine::SimulateChunk() {
           SimulateWater(ctx);
         }
       }
+    }
 }
 
 void PhysicsEngine::SimulateSand(const VoxelContext &ctx) {
@@ -134,19 +143,22 @@ bool PhysicsEngine::MoveVoxelHorizontally(const VoxelContext &ctx) {
   const voxel_index zSliceSize = ctx.chunkSize * ctx.chunkSize;
 
   // Horizontally left
-  if (ctx.gridPos.x > 0 and ctx.voxels[ctx.index - 1] == VoxelType_EMPTY){
+  if (ctx.gridPos.x > 0 and ctx.voxels[ctx.index - 1] == VoxelType_EMPTY) {
     candidates[count++] = ctx.index - 1;
   }
   // Horizontally right
-  if (ctx.gridPos.x < ctx.chunkSize - 1 and ctx.voxels[ctx.index + 1] == VoxelType_EMPTY){
+  if (ctx.gridPos.x < ctx.chunkSize - 1 and
+      ctx.voxels[ctx.index + 1] == VoxelType_EMPTY) {
     candidates[count++] = ctx.index + 1;
   }
   // Horizontally forward
-  if (ctx.gridPos.z < ctx.chunkSize - 1 and ctx.voxels[ctx.index + zSliceSize] == VoxelType_EMPTY){
+  if (ctx.gridPos.z < ctx.chunkSize - 1 and
+      ctx.voxels[ctx.index + zSliceSize] == VoxelType_EMPTY) {
     candidates[count++] = ctx.index + zSliceSize;
   }
   // Horizontally back
-  if (ctx.gridPos.z > 0 and ctx.voxels[ctx.index - zSliceSize] == VoxelType_EMPTY){
+  if (ctx.gridPos.z > 0 and
+      ctx.voxels[ctx.index - zSliceSize] == VoxelType_EMPTY) {
     candidates[count++] = ctx.index - zSliceSize;
   }
 

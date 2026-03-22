@@ -26,5 +26,6 @@ public:
   bool MoveVoxelHorizontally(const VoxelContext &ctx);
 
 private:
+  uint32_t myFrameCounter = 0;
   Scene &myScene;
 };
