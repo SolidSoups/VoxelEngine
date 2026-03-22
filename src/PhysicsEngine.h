@@ -1,15 +1,25 @@
 #pragma once
 
-struct VoxelChunk;
-class Scene;
+
 #include "objects/VoxelType.h"
 
-class PhysicsEngine{
+struct VoxelChunk;
+class Scene;
+
+struct VoxelContext {
+  Voxel *voxels;
+  voxel_index index;
+  glm::ivec3 gridPos;
+  voxel_index chunkSize;
+};
+
+class PhysicsEngine {
 public:
-  PhysicsEngine(Scene& aScene);
+  PhysicsEngine(Scene &aScene);
+
 public:
   void SimulateChunk();
+  void SimulateSand(const VoxelContext& ctx);
 
-private:
-  Scene& myScene;
+    private : Scene &myScene;
 };
