@@ -56,9 +56,8 @@ void BrushEditor::Draw() {
 
 
 void BrushEditor::DrawVoxelType(){
-  const char *typeItems[] = {"EMPTY", "STONE", "SAND"};
   static int selectedTypeIdx = (int)mySelectedVoxelType;
-  if(ImGuiHelpers::DrawCombo("Voxel Type", typeItems, IM_ARRAYSIZE(typeItems), selectedTypeIdx)){
+  if(ImGuiHelpers::DrawCombo("Voxel Type", ourVoxelNames.data(), ourVoxelNames.size(), selectedTypeIdx)){
     mySelectedVoxelType = (VoxelType)selectedTypeIdx;
   }
 }

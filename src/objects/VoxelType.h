@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 
 #define CHUNK_SIZE 32
 using voxel_index = uint16_t;
@@ -8,7 +9,14 @@ enum VoxelType : uint8_t {
   VoxelType_EMPTY = 0,
   VoxelType_STONE = 1,
   VoxelType_SAND = 2,
+  VoxelType_WATER = 3,
 
   VoxelType_PREVIEW,
   VoxelType_MAX
+};
+inline std::vector<const char*> ourVoxelNames = {
+  "EMPTY",
+  "STONE",
+  "SAND",
+  "WATER"
 };
