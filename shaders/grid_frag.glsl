@@ -7,7 +7,7 @@ in vec3 Normal;
 uniform vec3 redColor = vec3(1.0, 0.0, 0.0);
 uniform vec3 greenColor = vec3(0.0, 1.0, 0.0);
 uniform vec3 blueColor = vec3(0.0, 0.0, 1.0);
-uniform vec3 grayColor = vec3(0.2, 0.2, 0.2);
+uniform vec3 grayColor = vec3(0.4, 0.4, 0.4);
 uniform vec3 uCameraPos;
 
 bool approx(float x, float y){
@@ -19,7 +19,9 @@ bool approx(float x, float y){
 void main() {
   float viewDot = dot(normalize(uCameraPos - FragPos), Normal);
   vec3 color = grayColor;
-  if(approx(FragPos.x, 0.0) && approx(FragPos.y, 0.0))
+  if(approx(FragPos.x, 0.0) && approx(FragPos.y, 0.0) && approx(FragPos.z, 0.0))
+    color = vec3(1.0, 1.0, 1.0);
+  else if(approx(FragPos.x, 0.0) && approx(FragPos.y, 0.0))
     color = redColor;
   else if(approx(FragPos.z, 0.0) && approx(FragPos.y, 0.0))
     color = blueColor;
