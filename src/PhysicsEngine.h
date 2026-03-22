@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "objects/VoxelType.h"
 
 struct VoxelChunk;
@@ -19,7 +18,13 @@ public:
 
 public:
   void SimulateChunk();
-  void SimulateSand(const VoxelContext& ctx);
+  void SimulateSand(const VoxelContext &ctx);
+  void SimulateWater(const VoxelContext &ctx);
 
-    private : Scene &myScene;
+  bool MoveVoxelStraightDown(const VoxelContext& ctx);
+  bool MoveVoxelDiagonallyDown(const VoxelContext &ctx);
+  bool MoveVoxelHorizontally(const VoxelContext &ctx);
+
+private:
+  Scene &myScene;
 };
