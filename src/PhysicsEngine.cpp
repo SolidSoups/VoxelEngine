@@ -138,7 +138,7 @@ bool PhysicsEngine::MoveVoxelHorizontally(const VoxelContext &ctx) {
     candidates[count++] = ctx.index - 1;
   }
   // Horizontally right
-  if (ctx.gridPos.x > ctx.chunkSize - 1 and ctx.voxels[ctx.index + 1] == VoxelType_EMPTY){
+  if (ctx.gridPos.x < ctx.chunkSize - 1 and ctx.voxels[ctx.index + 1] == VoxelType_EMPTY){
     candidates[count++] = ctx.index + 1;
   }
   // Horizontally forward
