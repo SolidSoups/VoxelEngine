@@ -24,10 +24,12 @@ public:
     const glm::mat4 &aTransform, int aVoxelType
   );
   static void DrawVoxelGrid();
+  static void SetWireframeMode(bool aMode);
 
 private:
   static std::unique_ptr<Shader> myShader;
   static std::unique_ptr<Shader> myGridShader;
   static std::unique_ptr<NaiveCube> myNaiveCube;
   static std::unique_ptr<ViewportGrid> myViewportGrid;
+  static bool myIsWireframeMode;
 };

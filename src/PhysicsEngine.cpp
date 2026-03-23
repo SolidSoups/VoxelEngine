@@ -24,7 +24,7 @@ void PhysicsEngine::SimulateChunk() {
         // iterate every voxel in this vertical chunk slice...
         voxel_index x = reverseX ? (chunkSize - 1 - xx) : xx;
         voxel_index index = x + y * chunkSize + z * chunkSize * chunkSize;
-        Voxel &voxel = chunk[index];
+        Voxel &voxel = chunk.GetVoxel(index);
         // skip all empty voxels
         if (voxel == VoxelType_EMPTY)
           continue;

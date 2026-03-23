@@ -10,6 +10,7 @@ std::unique_ptr<Shader> Renderer::myShader = nullptr;
 std::unique_ptr<Shader> Renderer::myGridShader = nullptr;
 std::unique_ptr<NaiveCube> Renderer::myNaiveCube = nullptr;
 std::unique_ptr<ViewportGrid> Renderer::myViewportGrid = nullptr;
+bool Renderer::myIsWireframeMode = false;
 
 void Renderer::Initialize() {
   Renderer::myShader = std::make_unique<Shader>(VERT_PATH, FRAG_PATH);
@@ -34,6 +35,14 @@ void Renderer::Destroy() {
   Renderer::myViewportGrid.reset();
 }
 
+
+void Renderer::SetWireframeMode(bool aMode){
+  if(aMode)
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  else
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
 void Renderer::BeginFrame(Camera &camera) {
   // clear the background
   glClearColor(0, 0, 0, 1);
@@ -48,7 +57,9 @@ void Renderer::BeginFrame(Camera &camera) {
   Renderer::myGridShader->setMatrix4("view", camera.GetViewMatrix());
   Renderer::myGridShader->setMatrix4("projection", camera.GetProjectionMatrix());
   Renderer::myGridShader->setVec3("uCameraPos", camera.position);
+
 }
+
 
 void Renderer::DrawVoxelGrid(){
   glEnable(GL_BLEND);

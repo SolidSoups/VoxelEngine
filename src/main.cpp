@@ -30,35 +30,36 @@ int main() {
   Camera myCamera;
   PhysicsRuntime physicsRuntime(myScene);
 
-
   EditorLayer::AddRuntimeEditor(&physicsRuntime);
 
   VoxelPainter::SetCurrentChunk(&myScene.GetVoxelChunk());
+  Renderer::SetWireframeMode(true);
 
   float deltaTime = 0.f, lastTime = 0.f;
   while (!ApplicationLayer::ShouldClose()) {
     ApplicationLayer::PollEvents();
-
     inputLayer.UpdateInput(window);
 
-    // calculate delta time
+    // Calculate delta time
     float currentTime = glfwGetTime();
     deltaTime = currentTime - lastTime;
     lastTime = currentTime;
 
-    // do physics step
+    // Do a physics step
     physicsRuntime.Update(deltaTime);
 
-    // update camera aspect ratio
+    // Update camera with new aspect ratio
     myCamera.aspectRatio = ApplicationLayer::GetAspectRatio();
 
-    // control camera
+    // Control camera movement
     inputLayer.ControlCamera(window, myCameraController);
     myCameraController.MoveCamera(myCamera, deltaTime);
 
-    // draw frame
+    // Begin frame
     EditorLayer::BeginFrame();
     Renderer::BeginFrame(myCamera);
+
+    // Render
     myScene.Render();
     Renderer::DrawVoxelGrid();
 

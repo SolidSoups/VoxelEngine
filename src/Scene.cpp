@@ -4,6 +4,8 @@
 #include "VoxelPainter.h"
 
 Scene::Scene() {
+  VoxelPainter::SetBrushColor(VoxelType_WATER);
+  VoxelPainter::PaintSphere(glm::vec3(16), 10, voxelChunk);
 }
 
 void Scene::Render() {
@@ -13,7 +15,7 @@ void Scene::Render() {
   const float worldScale = 4.0f / CHUNK_SIZE;
   glm::vec3 color{1.0f};
   for (glm::ivec3 &pos : nonEmptyVoxels) {
-    Voxel &voxel = voxelChunk[pos.x, pos.y, pos.z];
+    Voxel &voxel = voxelChunk.GetVoxel({pos.x, pos.y, pos.z});
 
     // determine transform
     glm::vec3 position{pos};
