@@ -27,3 +27,10 @@ x           = 1011 0101
 bottomFaces = 1001 0101
 
 ```
+
+## Update later
+Finally got the shell mesh generation working. It was going really good for a while, using the yColumns, xRows and zRows to first generate 6 lists of vectors for the positions of all 6 faces of a cube, then using that data to determine where put the different faces. 
+
+But then i ran into a problem where the faces weren't facing the right way ? So for an hour i was just switching orientations on faces, swapping names, until i realized that the faces we're swapped in the Culling method for right and left faces.
+
+But anyways, it looks great. Now i need to clean it up and make it nice:w
