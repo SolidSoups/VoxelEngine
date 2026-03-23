@@ -6,7 +6,8 @@
 #include <glm/vec3.hpp>
 
 #define CHUNK_SIZE 32
-using voxel_index = uint16_t;
+using VoxelIndex = uint16_t;
+using VoxelBitset = uint32_t;
 using Voxel = uint8_t;
 enum VoxelType : uint8_t {
   VoxelType_EMPTY = 0,
@@ -33,7 +34,7 @@ inline std::vector<glm::vec3> ourVoxelColors = {
 
 // helper functions
 
-inline glm::ivec3 getVoxelGridPosition(voxel_index aIndex) { 
+inline glm::ivec3 getVoxelGridPosition(VoxelIndex aIndex) { 
   return {
     aIndex % CHUNK_SIZE,
     (aIndex / CHUNK_SIZE) % CHUNK_SIZE,
@@ -41,6 +42,6 @@ inline glm::ivec3 getVoxelGridPosition(voxel_index aIndex) {
   };
 }
 
-inline voxel_index getVoxelIndex(const glm::ivec3& aGridPosition) {
+inline VoxelIndex getVoxelIndex(const glm::ivec3& aGridPosition) {
   return aGridPosition.x + aGridPosition.y * CHUNK_SIZE + aGridPosition.z * CHUNK_SIZE * CHUNK_SIZE; 
 }

@@ -7,9 +7,9 @@ class Scene;
 
 struct VoxelContext {
   Voxel *voxels;
-  voxel_index index;
+  VoxelIndex index;
   glm::ivec3 gridPos;
-  voxel_index chunkSize;
+  VoxelIndex chunkSize;
 };
 
 class PhysicsEngine {
