@@ -7,6 +7,7 @@
 class NaiveCube;
 class ViewportGrid;
 class Shader;
+struct Mesh;
 struct Camera;
 
 #define VERT_PATH "shaders/vert.glsl"
@@ -18,11 +19,10 @@ class Renderer {
 public:
   Renderer() = delete;
   static void Initialize();
-  static void BeginFrame(Camera& aCamera);
+  static void BeginFrame(Camera &aCamera);
   static void Destroy();
-  static void DrawCube(
-    const glm::mat4 &aTransform, int aVoxelType
-  );
+  static void DrawCube(const glm::mat4 &aTransform, int aVoxelType);
+  static void DrawChunk(const Mesh &aMesh, const glm::mat4 &aTransform, int aVoxelType);
   static void DrawVoxelGrid();
   static void SetWireframeMode(bool aMode);
 

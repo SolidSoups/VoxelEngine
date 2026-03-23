@@ -1,5 +1,7 @@
 #include "Mesh.h"
 
+#include <print>
+
 #include <glad/glad.h>
 
 // current format: v = [p.x, p.y, p.z];
@@ -62,7 +64,11 @@ Mesh &Mesh::operator=(Mesh &&other) noexcept {
   return *this;
 }
 
-void Mesh::Draw() {
-  glBindVertexArray(vao);
-  glDrawElements(GL_TRIANGLES, myElementsSize, GL_UNSIGNED_INT, 0);
+void Mesh::Draw() const {
+  if(vao){
+    glBindVertexArray(vao);
+    glDrawElements(GL_TRIANGLES, myElementsSize, GL_UNSIGNED_INT, 0);
+  }
+  else
+    std::print("Vertex Array Object is null!)");
 }

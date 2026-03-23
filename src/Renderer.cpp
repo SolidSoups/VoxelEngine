@@ -5,6 +5,7 @@
 #include "objects/ViewportGrid.h"
 #include "objects/Camera.h"
 #include "objects/VoxelType.h"
+#include "objects/Mesh.h"
 
 std::unique_ptr<Shader> Renderer::myShader = nullptr;
 std::unique_ptr<Shader> Renderer::myGridShader = nullptr;
@@ -75,4 +76,11 @@ void Renderer::DrawCube(const glm::mat4 &aTransform,
   Renderer::myShader->setMatrix4("uTransform", aTransform);
   Renderer::myShader->setInt("uVoxelType", aVoxelType);
   Renderer::myNaiveCube->Draw();
+}
+
+void Renderer::DrawChunk(const Mesh &aMesh, const glm::mat4 &aTransform, int aVoxelType){
+  Renderer::myShader->Bind();
+  Renderer::myShader->setMatrix4("uTransform", aTransform);
+  Renderer::myShader->setInt("uVoxelType", aVoxelType);
+  aMesh.Draw();
 }

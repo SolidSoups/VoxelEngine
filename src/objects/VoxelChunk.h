@@ -25,6 +25,7 @@ public:
     voxels[index] = aType;
 
     // also set cache here
+    UpdateBitsets(aX, aY, aZ, aType != VoxelType_EMPTY);
   }
   inline void SetVoxel(const glm::ivec3 &aGridPos, VoxelType aType) {
     VoxelIndex index = aGridPos.x + aGridPos.y * CHUNK_SIZE +
@@ -32,11 +33,14 @@ public:
     voxels[index] = aType;
 
     // also set cache here
+    UpdateBitsets(aGridPos.x, aGridPos.y, aGridPos.z, aType != VoxelType_EMPTY);
   }
   inline void SetVoxel(VoxelIndex aIndex, VoxelType aType) {
     voxels[aIndex] = aType;
 
-    // also set cache here
+    // also set cache here, decompose coordinates
+    glm::vec3 co = getVoxelGridPosition(aIndex);
+    UpdateBitsets(co.x, co.y, co.z, aType != VoxelType_EMPTY);
   }
 
   // GETTERS
@@ -64,11 +68,30 @@ public:
     }
   }
 
+  uint64_t CountNonEmptyVoxels() const;
+
+private:
+  inline void UpdateBitsets(int aX, int aY, int aZ, bool isSolid){
+    if(isSolid){
+      xRows[aZ + aY * CHUNK_SIZE] |= 1 << aX;
+      yColumns[aX + aZ * CHUNK_SIZE] |= 1 << aY;
+      zRows[aX + aY * CHUNK_SIZE] |= 1 << aZ;
+    }
+    else{
+      xRows[aZ + aY * CHUNK_SIZE] &= ~(1 << aX);
+      yColumns[aX + aZ * CHUNK_SIZE] &= ~(1 << aY);
+      zRows[aX + aY * CHUNK_SIZE] &= ~(1 << aZ);
+    }
+  }
+
 public:
+  // Stores every voxel in a flat array
   Voxel *voxels;
 
-  // 
-  VoxelBitset *yColumns;
-  VoxelBitset *zRows;
+  // Stores every EMPTY/NON-EMPTY cell in +x
   VoxelBitset *xRows;
+  // Stores every EMPTY/NON-EMPTY cell in +y
+  VoxelBitset *yColumns;
+  // Stores every EMPTY/NON-EMPTY cell in +z
+  VoxelBitset *zRows;
 };

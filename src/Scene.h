@@ -1,6 +1,7 @@
 #pragma once
 
 #include "objects/VoxelChunk.h"
+#include "objects/Mesh.h"
 struct Camera;
 
 class Scene{
@@ -26,4 +27,5 @@ public:
   inline VoxelChunk& GetVoxelChunk() { return voxelChunk; }
 private:
   VoxelChunk voxelChunk;
+  Mesh myMesh;
 };

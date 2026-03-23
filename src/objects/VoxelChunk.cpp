@@ -2,9 +2,19 @@
 
 // CONSTRUCTOR/DESTRUCTOR
 VoxelChunk::VoxelChunk() {
+  // initialize voxels
   voxels = new Voxel[CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE];
-  memset(voxels, VoxelType::VoxelType_EMPTY,
+  memset(voxels, 0,
          sizeof(Voxel) * CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE);
+
+  // initialize bitsets
+  size_t size = CHUNK_SIZE * CHUNK_SIZE; 
+  xRows = new VoxelBitset[size];
+  yColumns = new VoxelBitset[size];
+  zRows = new VoxelBitset[size];
+  memset(xRows, 0, sizeof(VoxelBitset) * size);
+  memset(yColumns, 0, sizeof(VoxelBitset) * size);
+  memset(zRows, 0, sizeof(VoxelBitset) * size);
 }
 VoxelChunk::~VoxelChunk() { delete[] voxels; }
 
@@ -31,4 +41,14 @@ std::vector<glm::ivec3> VoxelChunk::getNonEmpty() {
           result.push_back({x, y, z});
       }
   return result;
+}
+
+
+uint64_t VoxelChunk::CountNonEmptyVoxels() const {
+  uint64_t count = 0; 
+  size_t size = CHUNK_SIZE * CHUNK_SIZE;
+  for(size_t i=0; i<size; i++){
+    count += std::popcount(yColumns[i]);
+  }
+  return count;
 }

@@ -6,6 +6,7 @@ struct Mesh {
   unsigned int ebo = 0;
 
 public:
+  Mesh() = default;
   Mesh(const std::vector<float> &someVertices,
        const std::vector<unsigned int> &someIndices);
   ~Mesh();
@@ -19,7 +20,7 @@ public:
   Mesh &operator=(Mesh &&other) noexcept;
 
 public:
-  void Draw();
+  void Draw() const;
 
 private:
   size_t myElementsSize;
