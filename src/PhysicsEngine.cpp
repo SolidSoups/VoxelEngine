@@ -4,17 +4,6 @@
 #include "objects/VoxelChunk.h"
 #include "Scene.h"
 
-// helper for getting the grid position
-glm::ivec3 getGridPosition(size_t aIndex, size_t aChunkSize) {
-  return {aIndex % aChunkSize, (aIndex / aChunkSize) % aChunkSize,
-          aIndex / (aChunkSize * aChunkSize)};
-}
-// helper for getting an index at a grid position
-size_t getIndex(const glm::ivec3 &aGridPos, size_t aChunkSize) {
-  return aGridPos.x + aGridPos.y * aChunkSize +
-         aGridPos.z * aChunkSize * aChunkSize;
-}
-
 PhysicsEngine::PhysicsEngine(Scene &aScene) : myScene(aScene) {}
 
 void PhysicsEngine::SimulateChunk() {
@@ -41,7 +30,7 @@ void PhysicsEngine::SimulateChunk() {
           continue;
 
         // Create context to share to sub-functions
-        VoxelContext ctx{chunk.voxels, index, getGridPosition(index, chunkSize),
+        VoxelContext ctx{chunk.voxels, index, getVoxelGridPosition(index),
                          chunkSize};
 
         // Simulate voxels

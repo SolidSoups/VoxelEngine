@@ -48,7 +48,7 @@ void VoxelPainter::PaintSphere(const glm::ivec3 &aGridCoordinate, int aRadius,
   std::vector<voxel_index> result;
   aChunk.QueryVoxels(
       [gridPosition, aRadius](voxel_index i, Voxel v) {
-        glm::vec3 voxelPos{getVGridPos(i)};
+        glm::vec3 voxelPos{getVoxelGridPosition(i)};
         if (glm::length(voxelPos - gridPosition) <= aRadius) {
           return true;
         }

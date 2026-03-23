@@ -29,3 +29,18 @@ inline std::vector<glm::vec3> ourVoxelColors = {
   {0.96f, 0.88f, 0.69f},    // SAND
   {0.227f, 0.247f, 0.788f}  // WATER
 };
+
+
+// helper functions
+
+inline glm::ivec3 getVoxelGridPosition(voxel_index aIndex) { 
+  return {
+    aIndex % CHUNK_SIZE,
+    (aIndex / CHUNK_SIZE) % CHUNK_SIZE,
+    aIndex / (CHUNK_SIZE * CHUNK_SIZE)
+  };
+}
+
+inline voxel_index getVoxelIndex(const glm::ivec3& aGridPosition) {
+  return aGridPosition.x + aGridPosition.y * CHUNK_SIZE + aGridPosition.z * CHUNK_SIZE * CHUNK_SIZE; 
+}

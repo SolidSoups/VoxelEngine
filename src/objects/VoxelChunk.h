@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <vector>
 #include <glm/glm.hpp>
 
@@ -31,12 +32,13 @@ struct VoxelChunk {
     return *this;
   }
 
-  // return a reference, so that this voxel could also be changed
+  // use the brackets to get an voxel via grid position
   Voxel &operator[](int x, int y, int z) {
     size_t index = x + y * CHUNK_SIZE + z * CHUNK_SIZE * CHUNK_SIZE;
     return voxels[index];
   }
 
+  // use the brackets to get an voxel via index
   Voxel &operator[](voxel_index index){
     return voxels[index];
   }
@@ -44,7 +46,6 @@ struct VoxelChunk {
   // returns the length of every side of the voxel chunk
   inline voxel_index GetSize() const { return CHUNK_SIZE; }
 
-public:
   std::vector<glm::ivec3> getNonEmpty() {
     std::vector<glm::ivec3> result;
     for (int z = 0; z < CHUNK_SIZE; z++)
@@ -70,15 +71,3 @@ public:
 public:
   Voxel *voxels;
 };
-inline glm::ivec3 getVGridPos(voxel_index aIndex) {
-  glm::ivec3 result;  
-  result.x = aIndex % CHUNK_SIZE;
-  result.y = (aIndex / CHUNK_SIZE) % CHUNK_SIZE;
-  result.z = aIndex / (CHUNK_SIZE * CHUNK_SIZE);
-  return result;
-}
-
-inline voxel_index getVIndex(const glm::ivec3& aGridPosition) {
-  return aGridPosition.x + aGridPosition.y * CHUNK_SIZE + aGridPosition.z * CHUNK_SIZE * CHUNK_SIZE; 
-}
-
