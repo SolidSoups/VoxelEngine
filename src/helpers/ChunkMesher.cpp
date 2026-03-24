@@ -48,16 +48,118 @@ Mesh ChunkMesher::BuildMeshFromChunkFaces(const ChunkFaces &someChunkFaces) {
   std::vector<float> vertices;
   std::vector<unsigned int> indices;
   unsigned int currentIdx = 0;
-  IterateFaces(someChunkFaces.tops, ourTopVerts, vertices, indices, currentIdx);
-  IterateFaces(someChunkFaces.bottoms, ourBottomVerts, vertices, indices, currentIdx);
-  IterateFaces(someChunkFaces.rights, ourRightVerts, vertices, indices, currentIdx);
-  IterateFaces(someChunkFaces.lefts, ourLeftVerts, vertices, indices, currentIdx);
-  IterateFaces(someChunkFaces.forwards, ourForwardVerts, vertices, indices, currentIdx);
-  IterateFaces(someChunkFaces.backs, ourBackVerts, vertices, indices, currentIdx);
+  // IterateFaces(someChunkFaces.tops, ourTopVerts, vertices, indices, currentIdx);
+  // IterateFaces(someChunkFaces.bottoms, ourBottomVerts, vertices, indices,
+  //              currentIdx);
+  IterateFaces(someChunkFaces.rights, ourRightVerts, vertices, indices,
+               currentIdx);
+  IterateFaces(someChunkFaces.lefts, ourLeftVerts, vertices, indices,
+               currentIdx);
+  // IterateFaces(someChunkFaces.forwards, ourForwardVerts, vertices, indices,
+  //              currentIdx);
+  // IterateFaces(someChunkFaces.backs, ourBackVerts, vertices, indices,
+  //              currentIdx);
 
   return Mesh{vertices, indices};
 }
 
+Mesh ChunkMesher::tmp(const VoxelChunk &aChunk) {
+  // x = yFace[y + z * CHUNK_SIZE]
+  // z = xFace[]
+  SliceMask posYFaces, negYFaces, posXFaces, negXFaces, posZFaces, negZFaces;
+
+  // Build slices of faces for each directional face
+  BuildFaceSlices(aChunk.xRows, negXFaces, posXFaces);
+  BuildFaceSlices(aChunk.zRows, negZFaces, posZFaces);
+  BuildFaceSlices(aChunk.yColumns, negYFaces, posYFaces);
+
+  // turn faces into positions
+  auto slices = negXFaces.slices;
+  auto &templateVerts = ourLeftVerts;
+
+  std::vector<glm::ivec3> positions;
+  for (int x = 0; x < CHUNK_SIZE; x++) {
+    for (int y = 0; y < CHUNK_SIZE; y++) {
+      VoxelBitset bitset = slices[x + y * CHUNK_SIZE];
+      while (bitset) {
+        positions.push_back({x, y, std::countr_zero(bitset)});
+        bitset &= bitset - 1;
+      }
+    }
+  }
+
+  // turn positions into quads
+  std::vector<float> vertices;
+  std::vector<unsigned int> indices;
+  unsigned int currentIndex = 0;
+  for (auto &pos : positions) {
+    for (int i = 0; i < 4; i++) {
+      vertices.push_back(templateVerts[i * 3 + 0] + pos.x);
+      vertices.push_back(templateVerts[i * 3 + 1] + pos.y);
+      vertices.push_back(templateVerts[i * 3 + 2] + pos.z);
+    }
+
+    indices.push_back(currentIndex + 0);
+    indices.push_back(currentIndex + 3);
+    indices.push_back(currentIndex + 1);
+    indices.push_back(currentIndex + 0);
+    indices.push_back(currentIndex + 2);
+    indices.push_back(currentIndex + 3);
+    currentIndex += 4;
+  }
+
+  return {vertices, indices};
+}
+
+// Transposes a 32x32 bitmatrix, ie switches the rows and columns
+// See Hacker's Delight, section 7.3
+void transpose32(uint32_t a[32]) {
+  static const struct {
+    int shift;
+    uint32_t mask;
+  } stages[] = {{16, 0x0000FFFF},
+                {8, 0x00FF00FF},
+                {4, 0x0F0F0F0F},
+                {2, 0x33333333},
+                {1, 0x55555555}};
+
+  for (auto [j, m] : stages) {
+    for (int k = 0; k < 32; k = ((k | j) + 1) & ~j) {
+      uint32_t t = (a[k] ^ (a[k | j] >> j)) & m;
+      a[k] ^= t;
+      a[k | j] ^= t << j;
+    }
+  }
+}
+
+void ChunkMesher::BuildFaceSlices(VoxelBitset *someCells,
+                                  SliceMask &outPositive,
+                                  SliceMask &outNegative) {
+  for (int length = 0; length < CHUNK_SIZE; length++) {
+    VoxelBitset posBits[CHUNK_SIZE];
+    VoxelBitset negBits[CHUNK_SIZE];
+
+    // For this Z layer, gather face masks across all x
+    for (int width = 0; width < CHUNK_SIZE; width++) {
+      VoxelBitset bitset = someCells[length * CHUNK_SIZE + width];
+
+      // each bit of posBits[width] is set if
+      // the one above is empty (ie its a positive face)
+      posBits[width] = bitset & ~(bitset >> 1);
+      negBits[width] = bitset & ~(bitset << 1);
+    }
+
+    // posBits[x] has bits set along Y
+    // we transpose them so posBits[y] has bits set along X instead
+    transpose32(posBits);
+    transpose32(negBits);
+
+    for (int depth = 0; depth < CHUNK_SIZE; depth++) {
+      outPositive.slices[depth + length * CHUNK_SIZE] = posBits[depth];
+      outNegative.slices[depth + length * CHUNK_SIZE] = negBits[depth];
+    }
+  }
+}
 
 void ChunkMesher::CullChunkFaces(const VoxelChunk &aChunk,
                                  ChunkFaces &outFaces) {
