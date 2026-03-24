@@ -70,5 +70,5 @@ void Mesh::Draw() const {
     glDrawElements(GL_TRIANGLES, myElementsSize, GL_UNSIGNED_INT, 0);
   }
   else
-    std::print("Vertex Array Object is null!)");
+    std::println("Vertex Array Object is null!)");
 }
