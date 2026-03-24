@@ -24,6 +24,7 @@ public:
   Mesh TempBuildMesh(const VoxelChunk& aChunk);
 
   Mesh tmp(const VoxelChunk &aChunk);
+  void BinaryGreedyMeshY(SliceMask& mask);
 private:
 
   // Takes a chunk as a paramterer, iterates through it's bitset arrays and

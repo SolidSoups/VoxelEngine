@@ -1,5 +1,6 @@
 #include "ChunkMesher.h"
 
+#include <bitset>
 #include <vector>
 #include <print>
 
@@ -64,8 +65,9 @@ Mesh ChunkMesher::BuildMeshFromChunkFaces(const ChunkFaces &someChunkFaces) {
 }
 
 Mesh ChunkMesher::tmp(const VoxelChunk &aChunk) {
-  // x = yFace[y + z * CHUNK_SIZE]
-  // z = xFace[]
+  // x = yFace[x + z * CHUNK_SIZE]
+  // y = zFace[y + z * CHUNK_SIZE]
+  // z = xFace[z + x * CHUNK_SIZE]
   SliceMask posYFaces, negYFaces, posXFaces, negXFaces, posZFaces, negZFaces;
 
   // Build slices of faces for each directional face
@@ -73,42 +75,33 @@ Mesh ChunkMesher::tmp(const VoxelChunk &aChunk) {
   BuildFaceSlices(aChunk.zRows, negZFaces, posZFaces);
   BuildFaceSlices(aChunk.yColumns, negYFaces, posYFaces);
 
-  // turn faces into positions
-  auto slices = negXFaces.slices;
-  auto &templateVerts = ourLeftVerts;
+  // let's greedy mesh
+  BinaryGreedyMeshY(posYFaces); 
 
-  std::vector<glm::ivec3> positions;
-  for (int x = 0; x < CHUNK_SIZE; x++) {
-    for (int y = 0; y < CHUNK_SIZE; y++) {
-      VoxelBitset bitset = slices[x + y * CHUNK_SIZE];
-      while (bitset) {
-        positions.push_back({x, y, std::countr_zero(bitset)});
-        bitset &= bitset - 1;
+  return {};
+}
+
+void ChunkMesher::BinaryGreedyMeshY(SliceMask& mask){
+  for(size_t y = 0; y < CHUNK_SIZE; y++){
+    for(size_t z=0; z < CHUNK_SIZE; z++){
+      VoxelBitset xRow = mask.slices[y + z * CHUNK_SIZE];
+      
+      while(xRow){
+        size_t start = std::countr_zero(xRow);
+        if(start == CHUNK_SIZE) continue; // no bits to work with
+        size_t width = std::countr_one(xRow >> start);
+
+        VoxelBitset mask = ((1u << width) - 1) << start;
+        size_t length = 1;
+
+        size_t iz = z;
+        // increase z until mask doesnt
+        while(true){
+
+        }
       }
     }
   }
-
-  // turn positions into quads
-  std::vector<float> vertices;
-  std::vector<unsigned int> indices;
-  unsigned int currentIndex = 0;
-  for (auto &pos : positions) {
-    for (int i = 0; i < 4; i++) {
-      vertices.push_back(templateVerts[i * 3 + 0] + pos.x);
-      vertices.push_back(templateVerts[i * 3 + 1] + pos.y);
-      vertices.push_back(templateVerts[i * 3 + 2] + pos.z);
-    }
-
-    indices.push_back(currentIndex + 0);
-    indices.push_back(currentIndex + 3);
-    indices.push_back(currentIndex + 1);
-    indices.push_back(currentIndex + 0);
-    indices.push_back(currentIndex + 2);
-    indices.push_back(currentIndex + 3);
-    currentIndex += 4;
-  }
-
-  return {vertices, indices};
 }
 
 // Transposes a 32x32 bitmatrix, ie switches the rows and columns
