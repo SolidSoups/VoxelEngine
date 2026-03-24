@@ -34,3 +34,23 @@ Finally got the shell mesh generation working. It was going really good for a wh
 But then i ran into a problem where the faces weren't facing the right way ? So for an hour i was just switching orientations on faces, swapping names, until i realized that the faces we're swapped in the Culling method for right and left faces.
 
 But anyways, it looks great. Now i need to clean it up and make it nice:w
+
+# 2026-03-24
+After adding some logging, we got this output:
+
+```
+Building Mesh. Voxel Count: 17074, Face Count: 4770, Triangle Count: 9540
+```
+
+This is of course with a larger sphere with a radius of 16 voxels.
+
+With the original approach, we would have rendered:
+
+```
+// 12 triangles per voxel
+triangles = 17074 * 12 = 204888
+```
+
+204 888 triangles. With the new approach we are rendering 9540 triangles. That's an decrease of triangles by *95.343798%* !!! Insane!
+
+
