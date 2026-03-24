@@ -1,21 +1,28 @@
 #include "ChunkMesher.h"
 
 #include <vector>
+#include <print>
 
 #include "../objects/VoxelChunk.h"
 #include "../objects/Mesh.h"
 #include "../objects/CubeFaces.h"
 
+Mesh ChunkMesher::TempBuildMesh(const VoxelChunk &aChunk) {
+  ChunkFaces faces;
+  CullChunkFaces(aChunk, faces);
+  return BuildMeshFromChunkFaces(faces);
+}
+
 void IterateFaces(const std::vector<glm::ivec3> &someFacePositions,
-                  const std::vector<float> &someFaceTemplate,
+                  const std::vector<float> &aFaceTemplate,
                   std::vector<float> &outSharedVertices,
                   std::vector<unsigned int> &outSharedIndices,
                   unsigned int &currentIndex) {
-  for (const glm::ivec3 &topFace : someFacePositions) {
+  for (const glm::ivec3 &face : someFacePositions) {
     for (int i = 0; i < 4; i++) {
-      outSharedVertices.push_back(someFaceTemplate[i * 3 + 0] + topFace.x);
-      outSharedVertices.push_back(someFaceTemplate[i * 3 + 1] + topFace.y);
-      outSharedVertices.push_back(someFaceTemplate[i * 3 + 2] + topFace.z);
+      outSharedVertices.push_back(aFaceTemplate[i * 3 + 0] + face.x);
+      outSharedVertices.push_back(aFaceTemplate[i * 3 + 1] + face.y);
+      outSharedVertices.push_back(aFaceTemplate[i * 3 + 2] + face.z);
     }
 
     outSharedIndices.push_back(currentIndex + 0);
@@ -28,26 +35,28 @@ void IterateFaces(const std::vector<glm::ivec3> &someFacePositions,
   }
 }
 
-Mesh ChunkMesher::TempBuildMesh(const VoxelChunk &aChunk) {
-  ChunkFaces faces;
+Mesh ChunkMesher::BuildMeshFromChunkFaces(const ChunkFaces &someChunkFaces) {
+  // Print the chunks size, face count and triangle count
+  uint64_t facesCount =
+      someChunkFaces.forwards.size() + someChunkFaces.backs.size() +
+      someChunkFaces.lefts.size() + someChunkFaces.rights.size() +
+      someChunkFaces.tops.size() + someChunkFaces.bottoms.size();
+  std::println("Building Mesh. Triangle Count: {0}", facesCount * 2);
 
-  // Cull the faces
-  CullChunkFaces(aChunk, faces);
-
-  // iterate through all faces, add to chunk faces
+  // Iterate through all directional faces and build the mesh
   std::vector<float> vertices;
   std::vector<unsigned int> indices;
   unsigned int currentIdx = 0;
-  IterateFaces(faces.tops, ourTopVerts, vertices, indices, currentIdx);
-  IterateFaces(faces.bottoms, ourBottomVerts, vertices, indices, currentIdx);
-  IterateFaces(faces.rights, ourRightVerts, vertices, indices, currentIdx);
-  IterateFaces(faces.lefts, ourLeftVerts, vertices, indices, currentIdx);
-  IterateFaces(faces.forwards, ourForwardVerts, vertices, indices, currentIdx);
-  IterateFaces(faces.backs, ourBackVerts, vertices, indices, currentIdx);
+  IterateFaces(someChunkFaces.tops, ourTopVerts, vertices, indices, currentIdx);
+  IterateFaces(someChunkFaces.bottoms, ourBottomVerts, vertices, indices, currentIdx);
+  IterateFaces(someChunkFaces.rights, ourRightVerts, vertices, indices, currentIdx);
+  IterateFaces(someChunkFaces.lefts, ourLeftVerts, vertices, indices, currentIdx);
+  IterateFaces(someChunkFaces.forwards, ourForwardVerts, vertices, indices, currentIdx);
+  IterateFaces(someChunkFaces.backs, ourBackVerts, vertices, indices, currentIdx);
 
-  // create the mesh object
-  return {vertices, indices};
+  return Mesh{vertices, indices};
 }
+
 
 void ChunkMesher::CullChunkFaces(const VoxelChunk &aChunk,
                                  ChunkFaces &outFaces) {

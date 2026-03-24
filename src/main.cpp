@@ -33,7 +33,7 @@ int main() {
   EditorLayer::AddRuntimeEditor(&physicsRuntime);
 
   VoxelPainter::SetCurrentChunk(&myScene.GetVoxelChunk());
- Renderer::SetWireframeMode(true);
+  Renderer::SetWireframeMode(true);
 
   float deltaTime = 0.f, lastTime = 0.f;
   while (!ApplicationLayer::ShouldClose()) {
