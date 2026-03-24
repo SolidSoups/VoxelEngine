@@ -1,4 +1,5 @@
 #include "VoxelChunk.h"
+#include "VoxelType.h"
 
 // CONSTRUCTOR/DESTRUCTOR
 VoxelChunk::VoxelChunk() {
@@ -31,15 +32,14 @@ VoxelChunk &VoxelChunk::operator=(VoxelChunk &&other) {
   return *this;
 }
 
-// SOME WEIRDO FUNCTIONS
+// Optimized now
 std::vector<glm::ivec3> VoxelChunk::getNonEmpty() {
   std::vector<glm::ivec3> result;
-  for (int z = 0; z < CHUNK_SIZE; z++)
-    for (int y = 0; y < CHUNK_SIZE; y++)
-      for (int x = 0; x < CHUNK_SIZE; x++) {
-        if (GetVoxel({x, y, z}) != VoxelType_EMPTY)
-          result.push_back({x, y, z});
-      }
+  size_t size = CHUNK_SIZE * CHUNK_SIZE;
+  for(size_t i=0; i<size; i++){
+    if(yColumns[i])
+      result.push_back(getVoxelGridPosition(i));
+  } 
   return result;
 }
 

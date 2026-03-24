@@ -8,6 +8,7 @@
 #include "../objects/CubeFaces.h"
 
 Mesh ChunkMesher::TempBuildMesh(const VoxelChunk &aChunk) {
+  std::println("Voxel count: {0}", aChunk.CountNonEmptyVoxels());
   ChunkFaces faces;
   CullChunkFaces(aChunk, faces);
   return BuildMeshFromChunkFaces(faces);

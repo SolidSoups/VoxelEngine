@@ -24,7 +24,6 @@ Scene::Scene() {
 }
 
 void Scene::Render() {
-  auto nonEmptyVoxels = voxelChunk.getNonEmpty();
   glm::mat4 scale = glm::scale(glm::mat4(1.0), glm::vec3(4.0f / CHUNK_SIZE));
   Renderer::DrawChunk(myMesh, scale, VoxelType_WATER);
 }
