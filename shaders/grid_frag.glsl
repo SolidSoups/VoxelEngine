@@ -22,9 +22,9 @@ void main() {
   if(approx(FragPos.x, 0.0) && approx(FragPos.y, 0.0) && approx(FragPos.z, 0.0))
     color = vec3(1.0, 1.0, 1.0);
   else if(approx(FragPos.x, 0.0) && approx(FragPos.y, 0.0))
-    color = redColor;
-  else if(approx(FragPos.z, 0.0) && approx(FragPos.y, 0.0))
     color = blueColor;
+  else if(approx(FragPos.z, 0.0) && approx(FragPos.y, 0.0))
+    color = redColor;
   else if(approx(FragPos.x, 0.0) && approx(FragPos.z, 0.0))
     color = greenColor;
 
