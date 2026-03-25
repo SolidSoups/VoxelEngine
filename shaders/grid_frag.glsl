@@ -18,6 +18,9 @@ bool approx(float x, float y){
 
 void main() {
   float viewDot = dot(normalize(uCameraPos - FragPos), Normal);
+  if(viewDot <= 0){
+    discard;
+  }
   vec3 color = grayColor;
   if(approx(FragPos.x, 0.0) && approx(FragPos.y, 0.0) && approx(FragPos.z, 0.0))
     color = vec3(1.0, 1.0, 1.0);
@@ -28,5 +31,5 @@ void main() {
   else if(approx(FragPos.x, 0.0) && approx(FragPos.z, 0.0))
     color = greenColor;
 
-  fragColor = vec4(color, clamp(viewDot, 0.0, 1.0));
+  fragColor = vec4(color, viewDot);
 }
