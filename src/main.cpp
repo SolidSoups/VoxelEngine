@@ -48,6 +48,9 @@ int main() {
     // Do a physics step
     physicsRuntime.Update(deltaTime);
 
+    // update scene, remesh chunk if needed
+    myScene.Update();
+
     // Update camera with new aspect ratio
     myCamera.aspectRatio = ApplicationLayer::GetAspectRatio();
 
@@ -55,6 +58,7 @@ int main() {
     inputLayer.ControlCamera(window, myCameraController);
     myCameraController.MoveCamera(myCamera, deltaTime);
     inputLayer.ControlScene(window, myScene);
+
 
     // Begin frame
     EditorLayer::BeginFrame();

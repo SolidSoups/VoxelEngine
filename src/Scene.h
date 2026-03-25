@@ -1,5 +1,6 @@
 #pragma once
 
+#include "helpers/ChunkMesher.h"
 #include "objects/VoxelChunk.h"
 #include "objects/Mesh.h"
 struct Camera;
@@ -14,21 +15,22 @@ public:
 
   // move
   Scene(Scene&& other) noexcept 
-  : voxelChunk(std::move(other.voxelChunk))
+  : myVoxelChunk(std::move(other.myVoxelChunk))
   {}
   Scene& operator=(Scene&& other) noexcept {
     if(this != &other){
-      voxelChunk = std::move(other.voxelChunk);
+      myVoxelChunk = std::move(other.myVoxelChunk);
     }
     return *this;
   }
 
   void Render();
-  inline VoxelChunk& GetVoxelChunk() { return voxelChunk; }
+  void Update();
+  inline VoxelChunk& GetVoxelChunk() { return myVoxelChunk; }
 
   bool toggleMesh = false;
 private:
-  VoxelChunk voxelChunk;
-  Mesh myMesh;
-  Mesh myMesh1;
+  ChunkMesher myChunkMesher;
+  VoxelChunk myVoxelChunk;
+  Mesh myChunkMesh;
 };

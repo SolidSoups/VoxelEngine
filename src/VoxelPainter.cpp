@@ -63,6 +63,8 @@ void VoxelPainter::PaintSphere(const glm::ivec3 &aGridCoordinate, int aRadius,
   for (VoxelIndex &i : result) {
     aChunk.SetVoxel(i, VoxelPainter::myBrushColor);
   }
+
+  aChunk.isDirty = true;
 }
 
 // terribly inneficient
@@ -74,8 +76,10 @@ void VoxelPainter::PaintRect(const glm::ivec3 &aGridPosA,
       for (int z = aabb.min.z; z <= aabb.max.z; z++) {
         aChunk.SetVoxel({x, y, z}, VoxelPainter::myBrushColor);
       }
+  aChunk.isDirty = true;
 }
 
 void VoxelPainter::PaintVoxel(const glm::ivec3 &aGridPos, VoxelChunk &aChunk) {
   aChunk.SetVoxel(aGridPos, VoxelPainter::myBrushColor);
+  aChunk.isDirty = true;
 }

@@ -11,35 +11,29 @@
 #include "objects/VertexMode.h"
 
 Scene::Scene() {
-  VoxelPainter::SetBrushColor(VoxelType_WATER);
-  VoxelPainter::PaintSphere(glm::vec3(16), 15, voxelChunk);
-  ChunkMesher mesher;
+  VoxelPainter::SetBrushColor(VoxelType_SAND);
+  VoxelPainter::PaintSphere(glm::ivec3(16), 15, myVoxelChunk);
+  VoxelPainter::PaintSphere(glm::ivec3(8), 5, myVoxelChunk);
+  VoxelPainter::PaintRect(glm::ivec3(14), glm::ivec3(31, 16, 31), myVoxelChunk);
+}
 
-  std::println("Loading mesh");
-  auto start = std::chrono::high_resolution_clock::now();
-  myMesh = mesher.CreateMesh_Greedy(voxelChunk);
-  auto end = std::chrono::high_resolution_clock::now();
-  auto us = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-  std::println("Loading mesh finished. Time: {0:.2f}ms", us / 1000.0);
-
-  
-  myMesh1 = mesher.CreateMesh_Culled(voxelChunk);
+void Scene::Update(){
+  if(myVoxelChunk.isDirty){
+    std::println("Chunk is dirty, remeshing");
+    auto start = std::chrono::high_resolution_clock::now();
+    myChunkMesh = myChunkMesher.CreateMesh_Greedy(myVoxelChunk);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto us = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+    std::println("Loading mesh finished. Time: {0:.2f}ms", us / 1000.0);
+    myVoxelChunk.isDirty = false;
+  }
 }
 
 void Scene::Render() {
-  glm::mat4 scale = glm::scale(glm::mat4(1.0), glm::vec3(4.0f / CHUNK_SIZE));
-
-
   FilledVertexMode filledMode;
   WireframeVertexMode wireframeMode;
-  if(toggleMesh){
-    Renderer::DrawChunk(myMesh1, scale, VoxelType_SAND, filledMode);
-    Renderer::DrawChunk(myMesh1, scale, VoxelType_WATER, wireframeMode);
-  }
-  else{
-    Renderer::DrawChunk(myMesh, scale, VoxelType_SAND, filledMode);
-    Renderer::DrawChunk(myMesh, scale, VoxelType_WATER, wireframeMode);
-  }
-  
 
+  glm::mat4 scale = glm::scale(glm::mat4(1.0), glm::vec3(4.0f / CHUNK_SIZE));
+  Renderer::DrawChunk(myChunkMesh, scale, VoxelType_SAND, filledMode);
+  Renderer::DrawChunk(myChunkMesh, scale, VoxelType_WATER, wireframeMode);
 }

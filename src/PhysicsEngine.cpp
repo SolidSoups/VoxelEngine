@@ -15,6 +15,7 @@ void PhysicsEngine::SimulateChunk() {
   myFrameCounter++;
   bool reverseZ = myFrameCounter % 2;
   bool reverseX = (myFrameCounter / 2) % 2;
+  bool somethingMoved = false;
 
   // Iterate for every z, from the bottom to top...
   for (VoxelIndex y = 0; y < chunkSize; y++)
@@ -31,18 +32,23 @@ void PhysicsEngine::SimulateChunk() {
 
         // Create context to share to sub-functions
         VoxelContext ctx{chunk.voxels, index, getVoxelGridPosition(index),
-                         chunkSize};
+                         chunkSize, chunk};
 
         // Simulate voxels
         switch (voxel) {
         case (VoxelType_SAND):
           SimulateSand(ctx);
+          somethingMoved = true;
           break;
         case (VoxelType_WATER):
           SimulateWater(ctx);
+          somethingMoved = true;
         }
       }
     }
+
+  if(somethingMoved)
+    chunk.isDirty = true;
 }
 
 void PhysicsEngine::SimulateSand(const VoxelContext &ctx) {
@@ -77,7 +83,8 @@ bool PhysicsEngine::MoveVoxelStraightDown(const VoxelContext &ctx) {
     return false;
 
   // swap this voxel with the one under
-  std::swap(voxelUnder, ctx.voxels[ctx.index]);
+  ctx.voxelChunk.SwapVoxels(indexUnder, ctx.index);
+
   return true;
 }
 
@@ -120,7 +127,7 @@ bool PhysicsEngine::MoveVoxelDiagonallyDown(const VoxelContext &ctx) {
 
   // swap a random diagonal candidate with this voxel
   VoxelIndex chosen = candidates[rand() % count];
-  std::swap(ctx.voxels[ctx.index], ctx.voxels[chosen]);
+  ctx.voxelChunk.SwapVoxels(chosen, ctx.index);
   return true;
 }
 
@@ -157,6 +164,6 @@ bool PhysicsEngine::MoveVoxelHorizontally(const VoxelContext &ctx) {
 
   // swap a random horizontal candidate with this voxel
   VoxelIndex chosen = candidates[rand() % count];
-  std::swap(ctx.voxels[ctx.index], ctx.voxels[chosen]);
+  ctx.voxelChunk.SwapVoxels(ctx.index, chosen);
   return true;
 }

@@ -10,6 +10,7 @@ struct VoxelContext {
   VoxelIndex index;
   glm::ivec3 gridPos;
   VoxelIndex chunkSize;
+  VoxelChunk& voxelChunk;
 };
 
 class PhysicsEngine {

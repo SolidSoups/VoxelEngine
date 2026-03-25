@@ -51,6 +51,14 @@ public:
   }
   inline Voxel &GetVoxel(VoxelIndex aIndex) { return voxels[aIndex]; }
 
+  inline void SwapVoxels(VoxelIndex aIndex1, VoxelIndex aIndex2){
+    std::swap(voxels[aIndex1], voxels[aIndex2]); 
+    glm::vec3 p1 = getVoxelGridPosition(aIndex1);
+    glm::vec3 p2 = getVoxelGridPosition(aIndex2);
+    UpdateBitsets(p1.x, p1.y, p1.z, voxels[aIndex1] != VoxelType_EMPTY);
+    UpdateBitsets(p2.x, p2.y, p2.z, voxels[aIndex2] != VoxelType_EMPTY);
+  }
+
   // Returns the side length of the voxel chunk
   inline VoxelIndex GetSize() const { return CHUNK_SIZE; }
 
@@ -94,4 +102,6 @@ public:
   VoxelBitset *yColumns;
   // Stores every EMPTY/NON-EMPTY cell in +z
   VoxelBitset *zRows;
+
+  bool isDirty = false;
 };
