@@ -6,6 +6,7 @@
 #include "objects/Camera.h"
 #include "objects/VoxelType.h"
 #include "objects/Mesh.h"
+#include "objects/VertexMode.h"
 
 std::unique_ptr<Shader> Renderer::myShader = nullptr;
 std::unique_ptr<Shader> Renderer::myGridShader = nullptr;
@@ -38,13 +39,10 @@ void Renderer::Destroy() {
 
 
 void Renderer::SetWireframeMode(bool aMode){
-
   if(aMode){
-    glLineWidth(3.0f);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
   }
   else{
-    glLineWidth(1.0f);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
 }
@@ -70,8 +68,13 @@ void Renderer::BeginFrame(Camera &camera) {
 void Renderer::DrawVoxelGrid(){
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glDisable(GL_CULL_FACE);
+  glEnable(GL_LINE_SMOOTH);
+  glLineWidth(1.0f);
   Renderer::myGridShader->Bind();
   Renderer::myViewportGrid->Draw();   
+  glEnable(GL_CULL_FACE);
+  glDisable(GL_LINE_SMOOTH);
   glDisable(GL_BLEND);
 }
 
@@ -83,9 +86,12 @@ void Renderer::DrawCube(const glm::mat4 &aTransform,
   Renderer::myNaiveCube->Draw();
 }
 
-void Renderer::DrawChunk(const Mesh &aMesh, const glm::mat4 &aTransform, int aVoxelType){
+void Renderer::DrawChunk(const Mesh &aMesh, const glm::mat4 &aTransform, int aVoxelType, IVertexMode& aVertexMode){
   Renderer::myShader->Bind();
   Renderer::myShader->setMatrix4("uTransform", aTransform);
-  Renderer::myShader->setInt("uVoxelType", aVoxelType);
+  Renderer::myShader->setInt("uVoxelType", aVoxelType);  
+
+  aVertexMode.OnEnable();
   aMesh.Draw();
+  aVertexMode.OnDisable();
 }

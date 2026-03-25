@@ -9,6 +9,7 @@ class ViewportGrid;
 class Shader;
 struct Mesh;
 struct Camera;
+class IVertexMode;
 
 #define VERT_PATH "shaders/vert.glsl"
 #define FRAG_PATH "shaders/frag.glsl"
@@ -22,7 +23,7 @@ public:
   static void BeginFrame(Camera &aCamera);
   static void Destroy();
   static void DrawCube(const glm::mat4 &aTransform, int aVoxelType);
-  static void DrawChunk(const Mesh &aMesh, const glm::mat4 &aTransform, int aVoxelType);
+  static void DrawChunk(const Mesh &aMesh, const glm::mat4 &aTransform, int aVoxelType, IVertexMode& aVertexMode);
   static void DrawVoxelGrid();
   static void SetWireframeMode(bool aMode);
 

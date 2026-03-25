@@ -8,12 +8,11 @@
 #include "objects/Mesh.h"
 #include "helpers/ChunkMesher.h"
 #include "objects/VoxelType.h"
+#include "objects/VertexMode.h"
 
 Scene::Scene() {
   VoxelPainter::SetBrushColor(VoxelType_WATER);
   VoxelPainter::PaintSphere(glm::vec3(16), 15, voxelChunk);
-  // VoxelPainter::PaintRect(glm::ivec3(0), glm::ivec3(31), voxelChunk);
-  VoxelPainter::SetBrushColor(VoxelType_SAND);
   ChunkMesher mesher;
 
   std::println("Loading mesh");
@@ -31,15 +30,16 @@ Scene::Scene() {
 void Scene::Render() {
   glm::mat4 scale = glm::scale(glm::mat4(1.0), glm::vec3(4.0f / CHUNK_SIZE));
 
-  Renderer::SetWireframeMode(false);
-  Renderer::DrawChunk(myMesh1, scale, VoxelType_SAND);
-  Renderer::SetWireframeMode(true);
 
+  FilledVertexMode filledMode;
+  WireframeVertexMode wireframeMode;
   if(toggleMesh){
-    Renderer::DrawChunk(myMesh1, scale, VoxelType_WATER);
+    Renderer::DrawChunk(myMesh1, scale, VoxelType_SAND, filledMode);
+    Renderer::DrawChunk(myMesh1, scale, VoxelType_WATER, wireframeMode);
   }
   else{
-    Renderer::DrawChunk(myMesh, scale, VoxelType_WATER);
+    Renderer::DrawChunk(myMesh, scale, VoxelType_SAND, filledMode);
+    Renderer::DrawChunk(myMesh, scale, VoxelType_WATER, wireframeMode);
   }
   
 
