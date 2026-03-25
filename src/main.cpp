@@ -57,15 +57,15 @@ int main() {
     inputLayer.ControlScene(window, myScene);
 
     // Begin frame
-    // EditorLayer::BeginFrame();
+    EditorLayer::BeginFrame();
     Renderer::BeginFrame(myCamera);
 
     // Render
     myScene.Render();
-    // Renderer::DrawVoxelGrid();
+    Renderer::DrawVoxelGrid();
 
     // end frame
-    // EditorLayer::EndFrame();
+    EditorLayer::EndFrame();
     ApplicationLayer::SwapBuffers();
   }
 
