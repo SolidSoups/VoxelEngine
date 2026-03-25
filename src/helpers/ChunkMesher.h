@@ -6,35 +6,34 @@
 
 struct VoxelChunk;
 struct Mesh;
-struct GreedyMesh {
-  glm::vec3 startPos;
-  glm::vec3 endPos;
-};
 struct ChunkFaces {
   std::vector<glm::ivec3> tops, bottoms, forwards, backs, lefts, rights;
 };
 struct SliceMask {
   VoxelBitset slices[CHUNK_SIZE * CHUNK_SIZE];
 };
+enum FaceDirection{
+  TOP=0, BOTTOM=1,
+  RIGHT=2, LEFT=3,
+  FORWARD=4, BACKWARD=5
+};
+struct GreedyMesh {
+  glm::vec3 startPos;
+  glm::vec3 endPos;
+};
 
 class ChunkMesher {
-public:
-  // Temporary interface for building a mesh from a chunk
-  Mesh TempBuildMesh(const VoxelChunk &aChunk);
-
-  Mesh tmp(const VoxelChunk &aChunk);
-  std::vector<GreedyMesh> BinaryGreedyMeshY(SliceMask &mask);
-
+public: // Culled meshing
+  Mesh CreateMesh_Culled(const VoxelChunk &aChunk);
 private:
-  // Takes a chunk as a paramterer, iterates through it's bitset arrays and
-  // produces lists containing every position of every directional face.
-  // Outputs it in outFaces.
   void CullChunkFaces(const VoxelChunk &aChunk, ChunkFaces &outFaces);
-
-  // Build's a mesh from a list of grid positions for every directional face
   Mesh BuildMeshFromChunkFaces(const ChunkFaces &someChunkFaces);
 
-  // Build positive and negative face slices from a collection of cells
+public: // Binary Greedy Meshing
+
+  Mesh CreateMesh_Greedy(const VoxelChunk &aChunk);
+private:
+  void BinaryGreedyMeshFaces(SliceMask &someFaces, FaceDirection aFaceDirection, std::vector<GreedyMesh> &outGreedyMeshes);
   void BuildFaceSlices(VoxelBitset *someCells, SliceMask &outPositive,
                        SliceMask &outNegative);
 };

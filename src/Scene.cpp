@@ -17,14 +17,13 @@ Scene::Scene() {
 
   std::println("Loading mesh");
   auto start = std::chrono::high_resolution_clock::now();
-  myMesh = mesher.tmp(voxelChunk);
+  myMesh = mesher.CreateMesh_Greedy(voxelChunk);
   auto end = std::chrono::high_resolution_clock::now();
-
   auto us = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
   std::println("Loading mesh finished. Time: {0:.2f}ms", us / 1000.0);
 
   
-  myMesh1 = mesher.TempBuildMesh(voxelChunk);
+  myMesh1 = mesher.CreateMesh_Culled(voxelChunk);
 }
 
 void Scene::Render() {

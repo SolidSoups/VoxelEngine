@@ -54,3 +54,18 @@ triangles = 17074 * 12 = 204888
 204 888 triangles. With the new approach we are rendering 9540 triangles. That's an decrease of triangles by *95.343798%* !!! Insane!
 
 
+# 2025-03-25
+Finally!! Binary greedy meshing is implemented.
+
+For a voxel sphere, placed at (16,16,16) with a "radius" of 15, generates 169´764 triangles, if naively meshed with cubes placed at each voxel spot.
+
+If we instead build a culled mesh, where we never put triangles inside a group of voxels, we get that count down to 8508 triangels.
+
+And finally, when we binary greedy mesh, that count goes down to 4056.
+
+## Comparatively
+Naive approach - **169 764** triangels
+Culled approach - **8 508** triangels (reduced by 95% compared to naive)
+Greedy approach - **4 056** triangels (reduced by 97% compared to naive, 52% compared to culled)
+
+Culling gives the biggest win here. Greedy meshing removes about half of the remaining triangles from there on, but it does take 1ms all together to do this. Maybe there are some optimizations that could be done, but right now it's not eating too much of the budget. This means that I can greedy mesh 16 chunks at the same time and still achieve a frame rate of 60fps.
