@@ -25,7 +25,10 @@ public:
 
   void Render();
   inline VoxelChunk& GetVoxelChunk() { return voxelChunk; }
+
+  bool toggleMesh = false;
 private:
   VoxelChunk voxelChunk;
   Mesh myMesh;
+  Mesh myMesh1;
 };

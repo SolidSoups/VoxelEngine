@@ -49,13 +49,14 @@ Mesh ChunkMesher::BuildMeshFromChunkFaces(const ChunkFaces &someChunkFaces) {
   std::vector<float> vertices;
   std::vector<unsigned int> indices;
   unsigned int currentIdx = 0;
-  // IterateFaces(someChunkFaces.tops, ourTopVerts, vertices, indices, currentIdx);
-  // IterateFaces(someChunkFaces.bottoms, ourBottomVerts, vertices, indices,
+  IterateFaces(someChunkFaces.tops, ourTopVerts, vertices, indices, currentIdx);
+  // IterateFaces(someChunkFaces.bottoms, ourBottomVerts, vertices,
+  // indices,
   //              currentIdx);
-  IterateFaces(someChunkFaces.rights, ourRightVerts, vertices, indices,
-               currentIdx);
-  IterateFaces(someChunkFaces.lefts, ourLeftVerts, vertices, indices,
-               currentIdx);
+  // IterateFaces(someChunkFaces.rights, ourRightVerts, vertices, indices,
+  //              currentIdx);
+  // IterateFaces(someChunkFaces.lefts, ourLeftVerts, vertices, indices,
+  //              currentIdx);
   // IterateFaces(someChunkFaces.forwards, ourForwardVerts, vertices, indices,
   //              currentIdx);
   // IterateFaces(someChunkFaces.backs, ourBackVerts, vertices, indices,
@@ -76,32 +77,79 @@ Mesh ChunkMesher::tmp(const VoxelChunk &aChunk) {
   BuildFaceSlices(aChunk.yColumns, negYFaces, posYFaces);
 
   // let's greedy mesh
-  BinaryGreedyMeshY(posYFaces); 
+  auto greedyMeshes = BinaryGreedyMeshY(posYFaces);
 
-  return {};
+  std::vector<float> vertices;
+  std::vector<unsigned int> indices;
+  unsigned int currentIndex = 0;
+  for (auto gMesh : greedyMeshes) {
+    glm::vec3 scale = (gMesh.endPos - gMesh.startPos);
+    scale.y = 1.f;
+    glm::vec3 center = (gMesh.startPos + gMesh.endPos) / 2.0f + glm::vec3(0.5f, 0.0f, -0.5f);
+    center.y = gMesh.startPos.y + 1.0f;
+
+    vertices.push_back(ourTopVerts[0] * scale.x + center.x);
+    vertices.push_back(ourTopVerts[1] * scale.y + center.y);
+    vertices.push_back(ourTopVerts[2] * scale.z + center.z);
+    vertices.push_back(ourTopVerts[3] * scale.x + center.x);
+    vertices.push_back(ourTopVerts[4] * scale.y + center.y);
+    vertices.push_back(ourTopVerts[5] * scale.z + center.z);
+    vertices.push_back(ourTopVerts[6] * scale.x + center.x);
+    vertices.push_back(ourTopVerts[7] * scale.y + center.y);
+    vertices.push_back(ourTopVerts[8] * scale.z + center.z);
+    vertices.push_back(ourTopVerts[9] * scale.x + center.x);
+    vertices.push_back(ourTopVerts[10] * scale.y + center.y);
+    vertices.push_back(ourTopVerts[11] * scale.z + center.z);
+
+    indices.push_back(currentIndex + 0);
+    indices.push_back(currentIndex + 3);
+    indices.push_back(currentIndex + 1);
+    indices.push_back(currentIndex + 0);
+    indices.push_back(currentIndex + 2);
+    indices.push_back(currentIndex + 3);
+    currentIndex += 4;
+  }
+
+  return {vertices, indices};
 }
 
-void ChunkMesher::BinaryGreedyMeshY(SliceMask& mask){
-  for(size_t y = 0; y < CHUNK_SIZE; y++){
-    for(size_t z=0; z < CHUNK_SIZE; z++){
-      VoxelBitset xRow = mask.slices[y + z * CHUNK_SIZE];
-      
-      while(xRow){
-        size_t start = std::countr_zero(xRow);
-        if(start == CHUNK_SIZE) continue; // no bits to work with
-        size_t width = std::countr_one(xRow >> start);
+std::vector<GreedyMesh> ChunkMesher::BinaryGreedyMeshY(SliceMask &someYFaces) {
+  std::vector<GreedyMesh> greedyMeshes;
+  for (size_t iy = 0; iy < CHUNK_SIZE; iy++) {
+    for (size_t iz = 0; iz < CHUNK_SIZE; iz++) {
+      VoxelBitset &xRow = someYFaces.slices[iy + iz * CHUNK_SIZE];
 
-        VoxelBitset mask = ((1u << width) - 1) << start;
-        size_t length = 1;
+      // For every chunk of faces, grow along the z
+      int x = 0;
+      while (x < CHUNK_SIZE) {
+        x = std::countr_zero(xRow);
+        int width = std::countr_one(xRow >> x);
+        if (x == CHUNK_SIZE) // all zero's
+          break;
 
-        size_t iz = z;
-        // increase z until mask doesnt
-        while(true){
+        VoxelBitset mask = (width == CHUNK_SIZE)
+                               ? ~VoxelBitset(0)
+                               : ((VoxelBitset(1) << width) - 1) << x;
+        // remove current voxels so we don't count them again
+        xRow &= ~mask;
 
+        int z = 1;
+        while (z + iz < CHUNK_SIZE) {
+          VoxelBitset &nextXRow = someYFaces.slices[iy + (z + iz) * CHUNK_SIZE];
+          if ((nextXRow & mask) != mask)
+            break;
+
+          // remove with mask from next row so we don't duplicate faces
+          nextXRow &= ~mask;
+          z++;
         }
+
+        greedyMeshes.push_back(
+            GreedyMesh{{x, iy, iz}, {x + width, iy, iz + z}});
       }
     }
   }
+  return greedyMeshes;
 }
 
 // Transposes a 32x32 bitmatrix, ie switches the rows and columns

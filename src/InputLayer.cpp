@@ -4,6 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <imgui_impl_glfw.h>
 
+#include "Scene.h"
 #include "CameraController.h"
 #include "ApplicationLayer.h"
 
@@ -24,6 +25,21 @@ void InputLayer::UpdateInput(GLFWwindow *aWindow) {
   }
 }
 
+void InputLayer::ControlScene(GLFWwindow *aWindow, Scene &aScene) {
+  static bool prevButtonState = false;
+  // engage
+  if (glfwGetKey(aWindow, GLFW_KEY_G) == GLFW_PRESS and
+      !prevButtonState) {
+    prevButtonState = true;
+    aScene.toggleMesh = !aScene.toggleMesh;
+  }
+  // rearm
+  if(glfwGetKey(aWindow, GLFW_KEY_G) == GLFW_RELEASE and
+     prevButtonState){
+    prevButtonState = false;
+  }
+}
+
 void InputLayer::ControlCamera(GLFWwindow *aWindow, CameraController &aCamera) {
   if (ImGui::GetIO().WantCaptureMouse)
     return;
@@ -40,7 +56,8 @@ void InputLayer::ControlCamera(GLFWwindow *aWindow, CameraController &aCamera) {
 
   // get the input state
   bool panButton = glfwGetMouseButton(aWindow, GLFW_MOUSE_BUTTON_MIDDLE);
-  bool orbitButton = glfwGetMouseButton(aWindow, GLFW_MOUSE_BUTTON_RIGHT) && glfwGetKey(aWindow, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
+  bool orbitButton = glfwGetMouseButton(aWindow, GLFW_MOUSE_BUTTON_RIGHT) &&
+                     glfwGetKey(aWindow, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
 
   // PAN!
   if (panButton) {

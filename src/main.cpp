@@ -54,17 +54,18 @@ int main() {
     // Control camera movement
     inputLayer.ControlCamera(window, myCameraController);
     myCameraController.MoveCamera(myCamera, deltaTime);
+    inputLayer.ControlScene(window, myScene);
 
     // Begin frame
-    EditorLayer::BeginFrame();
+    // EditorLayer::BeginFrame();
     Renderer::BeginFrame(myCamera);
 
     // Render
     myScene.Render();
-    Renderer::DrawVoxelGrid();
+    // Renderer::DrawVoxelGrid();
 
     // end frame
-    EditorLayer::EndFrame();
+    // EditorLayer::EndFrame();
     ApplicationLayer::SwapBuffers();
   }
 

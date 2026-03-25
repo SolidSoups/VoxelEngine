@@ -38,10 +38,15 @@ void Renderer::Destroy() {
 
 
 void Renderer::SetWireframeMode(bool aMode){
-  if(aMode)
+
+  if(aMode){
+    glLineWidth(3.0f);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  else
+  }
+  else{
+    glLineWidth(1.0f);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  }
 }
 
 void Renderer::BeginFrame(Camera &camera) {
