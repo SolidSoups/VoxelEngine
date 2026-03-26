@@ -11,10 +11,6 @@
 #include "objects/VertexMode.h"
 
 Scene::Scene() {
-  VoxelPainter::SetBrushColor(VoxelType_SAND);
-  VoxelPainter::PaintSphere(glm::ivec3(16), 15, myVoxelChunk);
-  VoxelPainter::PaintSphere(glm::ivec3(8), 5, myVoxelChunk);
-  VoxelPainter::PaintRect(glm::ivec3(14), glm::ivec3(31, 16, 31), myVoxelChunk);
 }
 
 void Scene::Update(){
