@@ -96,8 +96,28 @@ private:
   }
 
   inline void UpdateVoxelCache(int aX, int aY, int aZ, VoxelType aType) {
-    int index = std::max(1, (int)aType - 1);
-    xyIsolatedVoxels[index][aX + aY * CHUNK_SIZE] |= (1u << aZ);
+    int targetIndex = (int)aType - 1;
+    int typeStride = CHUNK_SIZE * CHUNK_SIZE;
+
+    // xy axis (bitset over z)
+    int xyOffset = aX + aY * CHUNK_SIZE;
+    for(int t=0; t<VOXEL_TYPES; t++)
+      xyIsolatedVoxels[xyOffset + t * typeStride] &= ~(1 << aZ);
+
+    // zy axis (bitset over x)
+    int zyOffset = aZ + aY * CHUNK_SIZE;
+    for(int t=0; t<VOXEL_TYPES; t++)
+      zyIsolatedVoxels[zyOffset + t * typeStride] &= ~(1 << aX);
+
+    // xz axis (bitset over y)
+    int xzOffset = aX + aZ * CHUNK_SIZE;
+    for(int t=0; t<VOXEL_TYPES; t++)
+      xzIsolatedVoxels[xzOffset + t * typeStride] &= ~(1 << aY);
+
+    if(aType == VoxelType_EMPTY) return;
+    xyIsolatedVoxels[xyOffset + targetIndex * typeStride] |= (1 << aZ);
+    zyIsolatedVoxels[zyOffset + targetIndex * typeStride] |= (1 << aX);
+    xzIsolatedVoxels[xzOffset + targetIndex * typeStride] |= (1 << aY);
   }
 
 public:
@@ -113,7 +133,9 @@ public:
 
   // store caches for different types,
   // faster to iterate on specific blocks
-  VoxelBitset *xyIsolatedVoxels[VOXEL_TYPES];
+  VoxelBitset *xyIsolatedVoxels;
+  VoxelBitset *zyIsolatedVoxels;
+  VoxelBitset *xzIsolatedVoxels;
 
   bool isDirty = false;
 };

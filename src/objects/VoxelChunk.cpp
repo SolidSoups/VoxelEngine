@@ -16,21 +16,17 @@ VoxelChunk::VoxelChunk() {
   memset(xzOccupancy, 0, sizeof(VoxelBitset) * size);
   memset(xyOccupancy, 0, sizeof(VoxelBitset) * size);
 
-  // Initialize isolated voxel views
-  for (int i = 0; i < VOXEL_TYPES; i++) {
-    xyIsolatedVoxels[i] = new VoxelBitset[CHUNK_SIZE * CHUNK_SIZE];
-    memset(xyIsolatedVoxels[i], 0, sizeof(VoxelBitset) * CHUNK_SIZE * CHUNK_SIZE);
-  }
+  // Initialize isolated voxels cache
+  xyIsolatedVoxels = new VoxelBitset[VOXEL_TYPES * CHUNK_SIZE * CHUNK_SIZE]();
+  zyIsolatedVoxels = new VoxelBitset[VOXEL_TYPES * CHUNK_SIZE * CHUNK_SIZE]();
+  xzIsolatedVoxels = new VoxelBitset[VOXEL_TYPES * CHUNK_SIZE * CHUNK_SIZE]();
 }
 VoxelChunk::~VoxelChunk() {
   delete[] xyzVoxels;
   delete[] xyOccupancy;
   delete[] xzOccupancy;
   delete[] zyOccupancy;
-  for (int i = 0; i < VOXEL_TYPES; i++) {
-    if (xyIsolatedVoxels[i])
-      delete[] xyIsolatedVoxels[i];
-  }
+  delete[] xyIsolatedVoxels;
 }
 
 // MOVE ASSIGNMENT AND OPERATOR
