@@ -3,7 +3,6 @@
 #include <glm/glm.hpp>
 #include "objects/Camera.h"
 
-#include <print>
 
 void CameraController::MoveCamera(Camera& aCamera, float aDeltaTime){
   const float TARGET_SPEED = 20.0f;
@@ -38,7 +37,12 @@ void CameraController::Reset(){
 }
 
 void CameraController::Zoom(float aScrollY){
-  myOrbitDistance -= aScrollY * myZoomSpeed; 
+  myOrbitDistance -= aScrollY * myZoomSpeed;
+  myOrbitDistance = glm::clamp(myOrbitDistance, MIN_ZOOM, MAX_ZOOM);
+}
+
+void CameraController::ZoomDrag(float aDragDeltaY){
+  myOrbitDistance += aDragDeltaY * myZoomDragSpeed;
   myOrbitDistance = glm::clamp(myOrbitDistance, MIN_ZOOM, MAX_ZOOM);
 }
 
@@ -59,6 +63,7 @@ void CameraController::Pan(const glm::dvec2& aMouseDelta){
   myRight = glm::normalize(glm::cross(myForward, glm::vec3(0.0f, 1.0f, 0.0f)));
   myUp = glm::normalize(glm::cross(myRight, myForward));
 
-  myTarget -= myRight * (float)aMouseDelta.x * myPanSpeed;
-  myTarget += myUp * (float)aMouseDelta.y * myPanSpeed;
+  float scaledPanSpeed = myPanSpeed * myOrbitDistance;
+  myTarget -= myRight * (float)aMouseDelta.x * scaledPanSpeed;
+  myTarget += myUp * (float)aMouseDelta.y * scaledPanSpeed;
 }

@@ -55,17 +55,30 @@ void InputLayer::ControlCamera(GLFWwindow *aWindow, CameraController &aCamera) {
   glm::vec2 mouseDelta = glm::vec2(mousePosition) - myPrevMousePosition;
 
   // get the input state
-  bool panButton = glfwGetMouseButton(aWindow, GLFW_MOUSE_BUTTON_MIDDLE);
-  bool orbitButton = glfwGetMouseButton(aWindow, GLFW_MOUSE_BUTTON_RIGHT) &&
-                     glfwGetKey(aWindow, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
+  bool lmb = glfwGetMouseButton(aWindow, GLFW_MOUSE_BUTTON_LEFT);
+  bool mmb = glfwGetMouseButton(aWindow, GLFW_MOUSE_BUTTON_MIDDLE);
+  bool rmb = glfwGetMouseButton(aWindow, GLFW_MOUSE_BUTTON_RIGHT);
+  bool shift = glfwGetKey(aWindow, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
+  bool ctrl = glfwGetKey(aWindow, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS;
+  bool alt = glfwGetKey(aWindow, GLFW_KEY_LEFT_ALT) == GLFW_PRESS;
 
-  // PAN!
-  if (panButton) {
+  bool panAction = mmb || (shift && !alt);
+  bool orbitAction = (rmb && shift) || (alt && !shift);
+  bool zoomDragAction = ctrl && lmb;
+
+  bool navigating = panAction || orbitAction || zoomDragAction;
+  if (navigating && !myWasNavigating)
+    glfwSetInputMode(aWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  else if (!navigating && myWasNavigating)
+    glfwSetInputMode(aWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+  myWasNavigating = navigating;
+
+  if (panAction) {
     aCamera.Pan(mouseDelta);
-  }
-  // ORBIT
-  else if (orbitButton) {
+  } else if (orbitAction) {
     aCamera.Orbit(mouseDelta);
+  } else if (zoomDragAction) {
+    aCamera.ZoomDrag(mouseDelta.y);
   }
 
   // ALWAYS ZOOM
@@ -74,4 +87,15 @@ void InputLayer::ControlCamera(GLFWwindow *aWindow, CameraController &aCamera) {
   // reset the scroll accumulation, track prev mouse pos
   ourScrollAccum = 0.0f;
   myPrevMousePosition = mousePosition;
+
+  myDebug.mousePos = mousePosition;
+  myDebug.delta = mouseDelta;
+  myDebug.lmb = lmb;
+  myDebug.mmb = mmb;
+  myDebug.rmb = rmb;
+  myDebug.shift = shift;
+  myDebug.ctrl = ctrl;
+  myDebug.pan = panAction;
+  myDebug.orbit = orbitAction;
+  myDebug.zoomDrag = zoomDragAction;
 }

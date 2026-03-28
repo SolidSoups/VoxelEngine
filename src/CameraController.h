@@ -11,6 +11,7 @@ public:
   void Reset();
 
   void Zoom(float aScrollY);
+  void ZoomDrag(float aDragDeltaY);
   void Orbit(const glm::dvec2& aMouseDelta);
   void Pan(const glm::dvec2& aMouseDelta);
 private:
@@ -28,8 +29,8 @@ private:
   glm::vec3 myUp{0.0f, 1.0f, 0.0f};
   glm::vec3 myRight{-1.0f, 0.0f, 0.0f};
 
-  const float myZoomSpeed = 1.0f;
-  const float myOrbitSpeed = 0.5f;
-  const float myPanSpeed = 0.01f;
-  const float mySmoothSpeed = 0.01f;
+  const float myZoomSpeed = 0.3f;
+  const float myZoomDragSpeed = 0.05f;
+  const float myOrbitSpeed = 0.05f;
+  const float myPanSpeed = 0.0005f;
 };
