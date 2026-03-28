@@ -11,6 +11,10 @@
 #include "objects/VertexMode.h"
 
 Scene::Scene() {
+  VoxelPainter::SetBrushColor(VoxelType_SAND);
+  VoxelPainter::PaintSphere(glm::ivec3(16), 15, myVoxelChunk);
+
+  std::println("VoxelCount: {0}", myVoxelChunk.CountNonEmptyVoxels());
 }
 
 void Scene::Update(){
