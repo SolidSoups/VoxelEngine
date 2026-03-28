@@ -28,7 +28,7 @@ public:
   void Update();
   inline VoxelChunk& GetVoxelChunk() { return myVoxelChunk; }
 
-  bool toggleMesh = false;
+  bool toggleWireframe = false;
 private:
   ChunkMesher myChunkMesher;
   VoxelChunk myVoxelChunk;

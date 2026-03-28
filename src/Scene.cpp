@@ -34,6 +34,8 @@ void Scene::Render() {
   WireframeVertexMode wireframeMode;
 
   glm::mat4 scale = glm::scale(glm::mat4(1.0), glm::vec3(4.0f / CHUNK_SIZE));
-  Renderer::DrawChunk(myChunkMesh, scale, VoxelType_SAND, filledMode);
-  Renderer::DrawChunk(myChunkMesh, scale, VoxelType_WATER, wireframeMode);
+  if(toggleWireframe)
+    Renderer::DrawChunk(myChunkMesh, scale, VoxelType_WATER, wireframeMode);
+  else
+    Renderer::DrawChunk(myChunkMesh, scale, VoxelType_SAND, filledMode);
 }

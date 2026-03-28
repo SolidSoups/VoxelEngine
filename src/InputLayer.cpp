@@ -31,7 +31,7 @@ void InputLayer::ControlScene(GLFWwindow *aWindow, Scene &aScene) {
   if (glfwGetKey(aWindow, GLFW_KEY_G) == GLFW_PRESS and
       !prevButtonState) {
     prevButtonState = true;
-    aScene.toggleMesh = !aScene.toggleMesh;
+    aScene.toggleWireframe = !aScene.toggleWireframe;
   }
   // rearm
   if(glfwGetKey(aWindow, GLFW_KEY_G) == GLFW_RELEASE and
