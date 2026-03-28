@@ -37,36 +37,27 @@ void PhysicsEngine::SimulateChunk() {
         // Simulate voxels
         switch (voxel) {
         case (VoxelType_SAND):
-          SimulateSand(ctx);
-          somethingMoved = true;
+          if (SimulateSand(ctx))
+            somethingMoved = true;
           break;
         case (VoxelType_WATER):
-          SimulateWater(ctx);
-          somethingMoved = true;
+          if (SimulateWater(ctx))
+            somethingMoved = true;
         }
       }
     }
 
-  if(somethingMoved)
+  if (somethingMoved)
     chunk.isDirty = true;
 }
 
-void PhysicsEngine::SimulateSand(const VoxelContext &ctx) {
-  if (MoveVoxelStraightDown(ctx))
-    return;
-
-  MoveVoxelDiagonallyDown(ctx);
+bool PhysicsEngine::SimulateSand(const VoxelContext &ctx) {
+  return MoveVoxelStraightDown(ctx) | MoveVoxelDiagonallyDown(ctx);
 }
 
-void PhysicsEngine::SimulateWater(const VoxelContext &ctx) {
-  if (MoveVoxelStraightDown(ctx))
-    return;
-
-  // Collect candidates for diagonal movement
-  if (MoveVoxelDiagonallyDown(ctx))
-    return;
-
-  MoveVoxelHorizontally(ctx);
+bool PhysicsEngine::SimulateWater(const VoxelContext &ctx) {
+  return MoveVoxelStraightDown(ctx) | MoveVoxelDiagonallyDown(ctx) |
+         MoveVoxelHorizontally(ctx);
 }
 
 bool PhysicsEngine::MoveVoxelStraightDown(const VoxelContext &ctx) {

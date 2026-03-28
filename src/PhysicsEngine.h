@@ -19,8 +19,8 @@ public:
 
 public:
   void SimulateChunk();
-  void SimulateSand(const VoxelContext &ctx);
-  void SimulateWater(const VoxelContext &ctx);
+  bool SimulateSand(const VoxelContext &ctx);
+  bool SimulateWater(const VoxelContext &ctx);
 
   bool MoveVoxelStraightDown(const VoxelContext& ctx);
   bool MoveVoxelDiagonallyDown(const VoxelContext &ctx);
