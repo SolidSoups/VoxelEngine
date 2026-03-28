@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 project(VoxelEngine)
 
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_BUILD_TYPE Debug)
 
 include(FetchContent)
 
@@ -90,3 +91,4 @@ target_precompile_headers(voxel_engine
 
     <string>
 )
+target_compile_options(voxel_engine PRIVATE -g)
