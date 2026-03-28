@@ -31,7 +31,7 @@ void PhysicsEngine::SimulateChunk() {
           continue;
 
         // Create context to share to sub-functions
-        VoxelContext ctx{chunk.voxels, index, getVoxelGridPosition(index),
+        VoxelContext ctx{chunk.xyzVoxels, index, getVoxelGridPosition(index),
                          chunkSize, chunk};
 
         // Simulate voxels

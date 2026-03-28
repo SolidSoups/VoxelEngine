@@ -6,6 +6,7 @@
 #include <glm/vec3.hpp>
 
 #define CHUNK_SIZE 32
+#define VOXEL_TYPES 3
 using VoxelIndex = uint16_t;
 using VoxelBitset = uint32_t;
 using Voxel = uint8_t;
@@ -18,6 +19,9 @@ enum VoxelType : uint8_t {
   VoxelType_PREVIEW,
   VoxelType_MAX
 };
+#define STONE_MASK 0x01
+#define SAND_MASK 0x02
+#define WATER_MASK 0x03
 inline std::vector<const char*> ourVoxelNames = {
   "EMPTY",
   "STONE",

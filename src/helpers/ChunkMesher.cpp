@@ -24,7 +24,7 @@ void ChunkMesher::CullChunkFaces(const VoxelChunk &aChunk,
   for (size_t i = 0; i < size; i++) {
     int z = i % CHUNK_SIZE;
     int y = i / CHUNK_SIZE;
-    VoxelBitset bitset = aChunk.xRows[i];
+    VoxelBitset bitset = aChunk.zyOccupancy[i];
 
     VoxelBitset pos = bitset & ~(bitset >> 1);
     while (pos) {
@@ -44,7 +44,7 @@ void ChunkMesher::CullChunkFaces(const VoxelChunk &aChunk,
   for (size_t i = 0; i < size; i++) {
     int x = i % CHUNK_SIZE;
     int y = i / CHUNK_SIZE;
-    VoxelBitset bitset = aChunk.zRows[i];
+    VoxelBitset bitset = aChunk.xyOccupancy[i];
 
     VoxelBitset pos = bitset & ~(bitset >> 1);
     while (pos) {
@@ -66,7 +66,7 @@ void ChunkMesher::CullChunkFaces(const VoxelChunk &aChunk,
   for (size_t i = 0; i < size; i++) {
     int x = i % CHUNK_SIZE;
     int z = i / CHUNK_SIZE;
-    VoxelBitset bitset = aChunk.yColumns[i];
+    VoxelBitset bitset = aChunk.xzOccupancy[i];
 
     VoxelBitset pos = bitset & ~(bitset >> 1);
     while (pos) {
@@ -155,11 +155,11 @@ Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
   SliceMask faces[6];
 
   // Build slices of faces for each directional face
-  BuildFaceSlices(aChunk.xRows, faces[FaceDirection::RIGHT],
+  BuildFaceSlices(aChunk.zyOccupancy, faces[FaceDirection::RIGHT],
                   faces[FaceDirection::LEFT]);
-  BuildFaceSlices(aChunk.zRows, faces[FaceDirection::BACKWARD],
+  BuildFaceSlices(aChunk.xyOccupancy, faces[FaceDirection::BACKWARD],
                   faces[FaceDirection::FORWARD]);
-  BuildFaceSlices(aChunk.yColumns, faces[FaceDirection::TOP],
+  BuildFaceSlices(aChunk.xzOccupancy, faces[FaceDirection::TOP],
                   faces[FaceDirection::BOTTOM]);
 
   // GREEDY MESH
@@ -216,7 +216,7 @@ Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
         v[j * 3 + 2] = faceTemplateVerts[j * 3 + 2] * scale.z + center.z;
       }
 
-      // insert general face indices for quad
+      // insert quad indices
       unsigned int *idx = &indices[(vertexOffset + i) * 6];
       unsigned int base = (vertexOffset + i) * 4;
       idx[0] = base + 0;
