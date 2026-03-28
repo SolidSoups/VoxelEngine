@@ -9,8 +9,48 @@
 #include "../objects/CubeFaces.h"
 
 
+namespace {
+// Get the vertices for a face
+std::vector<float> &getFaceVertices(FaceDirection direction) {
+  switch (direction) {
+  case TOP:
+    return ourTopVerts;
+  case BOTTOM:
+    return ourBottomVerts;
+  case RIGHT:
+    return ourRightVerts;
+  case LEFT:
+    return ourLeftVerts;
+  case FORWARD:
+    return ourForwardVerts;
+  case BACKWARD:
+    return ourBackVerts;
+  }
+  std::unreachable(); // inform compiler function will NEVER reach here
+}
 
-std::vector<float> &getFaceVertices(FaceDirection direction);
+// Transposes a 32x32 bitmatrix, ie switches the rows and columns
+// See Hacker's Delight, section 7.3
+void transpose32(uint32_t a[32]) {
+  static const struct {
+    int shift;
+    uint32_t mask;
+  } stages[] = {{16, 0x0000FFFF},
+                {8, 0x00FF00FF},
+                {4, 0x0F0F0F0F},
+                {2, 0x33333333},
+                {1, 0x55555555}};
+
+  for (auto [j, m] : stages) {
+    for (int k = 0; k < 32; k = ((k | j) + 1) & ~j) {
+      uint32_t t = (a[k] ^ (a[k | j] >> j)) & m;
+      a[k] ^= t;
+      a[k | j] ^= t << j;
+    }
+  }
+}
+}
+
 Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
   // BUILD FACE SLICES
   SliceMask faces[6];
@@ -26,7 +66,6 @@ Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
   // GREEDY MESH
 
   // let's greedy mesh
-  FaceDirection direction = FaceDirection::LEFT;
   std::vector<GreedyMesh> greedyMeshes[6];
   size_t greedyMeshCount = 0;
   for (int fd = 0; fd < 6; fd++) {
@@ -47,50 +86,62 @@ Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
   for (int fd = 0; fd < 6; fd++) {
     // Get the face meshes for this direction and the template faces
     std::vector<GreedyMesh> &faceMeshes = greedyMeshes[fd];
-    auto &faceTemplateVerts = getFaceVertices((FaceDirection)fd);
-    for (size_t i = 0; i < faceMeshes.size(); i++) {
-      auto &gMesh = faceMeshes[i];
-
-      // compute scale and center point of rect
-      glm::vec3 scale = (gMesh.endPos - gMesh.startPos);
-      glm::vec3 center = (gMesh.startPos + gMesh.endPos) / 2.0f;
-      // scale calculation gives 0 on the axis that the face
-      // is perpendicular to.
-      if (scale.x == 0)
-        scale.x = 1.f;
-      else
-        center.x -= 0.5f;
-      if (scale.y == 0)
-        scale.y = 1.f;
-      else
-        center.y -= 0.5f;
-      if (scale.z == 0)
-        scale.z = 1.f;
-      else
-        center.z -= 0.5f;
-
-      // insert template verticess offset and scaled
-      float *v = &vertices[(vertexOffset + i) * 12];
-      for (int j = 0; j < 4; j++) {
-        v[j * 3 + 0] = faceTemplateVerts[j * 3 + 0] * scale.x + center.x;
-        v[j * 3 + 1] = faceTemplateVerts[j * 3 + 1] * scale.y + center.y;
-        v[j * 3 + 2] = faceTemplateVerts[j * 3 + 2] * scale.z + center.z;
-      }
-
-      // insert quad indices
-      unsigned int *idx = &indices[(vertexOffset + i) * 6];
-      unsigned int base = (vertexOffset + i) * 4;
-      idx[0] = base + 0;
-      idx[1] = base + 3;
-      idx[2] = base + 1;
-      idx[3] = base + 0;
-      idx[4] = base + 2;
-      idx[5] = base + 3;
-    }
-    vertexOffset += faceMeshes.size();
+    BuildGreedyMeshBuffers(faceMeshes, (FaceDirection)fd, vertexOffset, vertices, indices);
   }
 
   return {vertices, indices};
+}
+
+void ChunkMesher::BuildGreedyMeshBuffers(
+    std::vector<GreedyMesh> &someGreedyMeshes,
+    FaceDirection aFaceDirection,
+    size_t& aVertexOffset,
+    std::vector<float> &outVertices,
+    std::vector<unsigned int> &outIndices
+) {
+  auto &faceTemplateVerts = getFaceVertices(aFaceDirection);
+  for (size_t i = 0; i < someGreedyMeshes.size(); i++) {
+    auto &gMesh = someGreedyMeshes[i];
+
+    // compute scale and center point of rect
+    glm::vec3 scale = (gMesh.endPos - gMesh.startPos);
+    glm::vec3 center = (gMesh.startPos + gMesh.endPos) / 2.0f;
+
+    // Perpendicular axis has zero span, so it gets unit scale,
+    // while spanning axis get their center shifted by -0.5 to
+    // align with voxel grid edges
+    if (scale.x == 0)
+      scale.x = 1.f;
+    else
+      center.x -= 0.5f;
+    if (scale.y == 0)
+      scale.y = 1.f;
+    else
+      center.y -= 0.5f;
+    if (scale.z == 0)
+      scale.z = 1.f;
+    else
+      center.z -= 0.5f;
+
+    // insert template verticess offset and scaled
+    float *v = &outVertices[(aVertexOffset + i) * 12];
+    for (int j = 0; j < 4; j++) {
+      v[j * 3 + 0] = faceTemplateVerts[j * 3 + 0] * scale.x + center.x;
+      v[j * 3 + 1] = faceTemplateVerts[j * 3 + 1] * scale.y + center.y;
+      v[j * 3 + 2] = faceTemplateVerts[j * 3 + 2] * scale.z + center.z;
+    }
+
+    // insert quad indices
+    unsigned int *idx = &outIndices[(aVertexOffset + i) * 6];
+    unsigned int base = (aVertexOffset + i) * 4;
+    idx[0] = base + 0;
+    idx[1] = base + 3;
+    idx[2] = base + 1;
+    idx[3] = base + 0;
+    idx[4] = base + 2;
+    idx[5] = base + 3;
+  }
+  aVertexOffset += someGreedyMeshes.size();
 }
 
 void ChunkMesher::BinaryGreedyMeshFaces(
@@ -138,7 +189,6 @@ void ChunkMesher::BinaryGreedyMeshFaces(
           rowLength++;
         }
 
-        // This is the problem!!!! only works for Y-columns
         int aisleEnd = aisleStart + aisleWidth;
         int rowEnd = row + rowLength;
         GreedyMesh newGreedyMesh;
@@ -160,26 +210,6 @@ void ChunkMesher::BinaryGreedyMeshFaces(
   }
 }
 
-// Transposes a 32x32 bitmatrix, ie switches the rows and columns
-// See Hacker's Delight, section 7.3
-void transpose32(uint32_t a[32]) {
-  static const struct {
-    int shift;
-    uint32_t mask;
-  } stages[] = {{16, 0x0000FFFF},
-                {8, 0x00FF00FF},
-                {4, 0x0F0F0F0F},
-                {2, 0x33333333},
-                {1, 0x55555555}};
-
-  for (auto [j, m] : stages) {
-    for (int k = 0; k < 32; k = ((k | j) + 1) & ~j) {
-      uint32_t t = (a[k] ^ (a[k | j] >> j)) & m;
-      a[k] ^= t;
-      a[k | j] ^= t << j;
-    }
-  }
-}
 
 void ChunkMesher::BuildFaceSlices(VoxelBitset *someCells,
                                   SliceMask &outPositive,
@@ -217,22 +247,3 @@ void ChunkMesher::BuildFaceSlices(VoxelBitset *someCells,
   }
 }
 
-
-// Get the vertices for a face
-std::vector<float> &getFaceVertices(FaceDirection direction) {
-  switch (direction) {
-  case TOP:
-    return ourTopVerts;
-  case BOTTOM:
-    return ourBottomVerts;
-  case RIGHT:
-    return ourRightVerts;
-  case LEFT:
-    return ourLeftVerts;
-  case FORWARD:
-    return ourForwardVerts;
-  case BACKWARD:
-    return ourBackVerts;
-  }
-  std::unreachable(); // inform compiler function will NEVER reach here
-}
