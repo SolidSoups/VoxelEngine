@@ -59,6 +59,8 @@ public:
     std::swap(xyzVoxels[aIndex1], xyzVoxels[aIndex2]);
     glm::vec3 p1 = getVoxelGridPosition(aIndex1);
     glm::vec3 p2 = getVoxelGridPosition(aIndex2);
+    UpdateVoxelCache(p1.x, p1.y, p1.z, (VoxelType)xyzVoxels[aIndex1]);
+    UpdateVoxelCache(p2.x, p2.y, p2.z, (VoxelType)xyzVoxels[aIndex2]);
     UpdateBitsets(p1.x, p1.y, p1.z, xyzVoxels[aIndex1] != VoxelType_EMPTY);
     UpdateBitsets(p2.x, p2.y, p2.z, xyzVoxels[aIndex2] != VoxelType_EMPTY);
   }

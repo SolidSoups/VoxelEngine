@@ -8,7 +8,6 @@
 #include "../objects/Mesh.h"
 #include "../objects/CubeFaces.h"
 
-
 namespace {
 // Get the vertices for a face
 std::vector<float> &getFaceVertices(FaceDirection direction) {
@@ -29,8 +28,8 @@ std::vector<float> &getFaceVertices(FaceDirection direction) {
   std::unreachable(); // inform compiler function will NEVER reach here
 }
 
-// Transposes a 32x32 bitmatrix, ie switches the rows and columns
-// See Hacker's Delight, section 7.3
+// Transposes a 32x32 bitmatrix, ie flips on the diagonal. Uses most significant
+// bit as origin. See Hacker's Delight, section 7.3
 void transpose32(uint32_t a[32]) {
   static const struct {
     int shift;
@@ -49,56 +48,78 @@ void transpose32(uint32_t a[32]) {
     }
   }
 }
-}
+} // namespace
 
 Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
-  // BUILD FACE SLICES
-  SliceMask faces[6];
-
-  // Build slices of faces for each directional face
-  BuildFaceSlices(aChunk.zyOccupancy, faces[FaceDirection::RIGHT],
-                  faces[FaceDirection::LEFT]);
-  BuildFaceSlices(aChunk.xyOccupancy, faces[FaceDirection::BACKWARD],
-                  faces[FaceDirection::FORWARD]);
-  BuildFaceSlices(aChunk.xzOccupancy, faces[FaceDirection::TOP],
-                  faces[FaceDirection::BOTTOM]);
-
-  // GREEDY MESH
-
-  // let's greedy mesh
-  std::vector<GreedyMesh> greedyMeshes[6];
-  size_t greedyMeshCount = 0;
-  for (int fd = 0; fd < 6; fd++) {
-    BinaryGreedyMeshFaces(faces[fd], (FaceDirection)fd, greedyMeshes[fd]);
-    greedyMeshCount += greedyMeshes[fd].size();
-  }
-  std::println("Built greedy meshes. Resulting faces: {0}, triangles: {1}",
-               greedyMeshCount, greedyMeshCount * 2);
-
-  // pre-allocate memory to avoid repeated reallocations
+  // mesh buffers
   std::vector<float> vertices;
   std::vector<unsigned int> indices;
-  vertices.resize(greedyMeshCount * 12);
-  indices.resize(greedyMeshCount * 6);
-
-  // Create face meshes for every directional face
   size_t vertexOffset = 0;
-  for (int fd = 0; fd < 6; fd++) {
-    // Get the face meshes for this direction and the template faces
-    std::vector<GreedyMesh> &faceMeshes = greedyMeshes[fd];
-    BuildGreedyMeshBuffers(faceMeshes, (FaceDirection)fd, vertexOffset, vertices, indices);
+
+  // Greedy mesh on individual block types
+  // to allow setting color attributes
+  for (int t = 0; t < VOXEL_TYPES; t++) {
+    // Get isolated axis views of the type
+    VoxelBitset *zy = aChunk.zyIsolatedVoxels + t * CHUNK_SIZE * CHUNK_SIZE;
+    VoxelBitset *xy = aChunk.xyIsolatedVoxels + t * CHUNK_SIZE * CHUNK_SIZE;
+    VoxelBitset *xz = aChunk.xzIsolatedVoxels + t * CHUNK_SIZE * CHUNK_SIZE;
+
+    // Store planar slices of every directional face
+    // A slice is perpendicular to its direction
+    SliceMask faces[6];
+
+    // Build face slices for every axis
+    BuildFaceSlicesForAxis(zy, faces[RIGHT], faces[LEFT]);
+    BuildFaceSlicesForAxis(xy, faces[BACKWARD], faces[FORWARD]);
+    BuildFaceSlicesForAxis(xz, faces[TOP], faces[BOTTOM]);
+
+    std::vector<GreedyMesh> greedyMeshes[6];
+    size_t greedyMeshCount = 0;
+    // for every face direction...
+    for (int fd = 0; fd < 6; fd++) {
+      // ... merge faces with binary greedy mesh algorithm
+      BinaryGreedyMeshFaces(faces[fd], (FaceDirection)fd, greedyMeshes[fd]);
+      greedyMeshCount += greedyMeshes[fd].size();
+    }
+
+    // DEBUG
+    std::string typeStr;
+    switch (t) {
+    case 0:
+      typeStr = "STONE";
+      break;
+    case 1:
+      typeStr = "SAND";
+      break;
+    case 2:
+      typeStr = "WATER";
+      break;
+    }
+    std::println("{0}: Build greedy mesh. Number of triangles: {1}", typeStr,
+                 greedyMeshCount * 2);
+
+    // Resize mesh buffers to avoid repeated allocations
+    vertices.resize(vertices.size() + greedyMeshCount * 16);
+    indices.resize(indices.size() + greedyMeshCount * 6);
+
+    // for every face direction...
+    VoxelType voxelType = (VoxelType)(t+1);
+    for (int fd = 0; fd < 6; fd++) {
+      // ... build vertices and indices
+      std::vector<GreedyMesh> &faceMeshes = greedyMeshes[fd];
+      BuildGreedyMeshBuffers(faceMeshes, (FaceDirection)fd, vertexOffset,
+                             vertices, indices, voxelType);
+    }
   }
 
+  // return new mesh
   return {vertices, indices};
 }
 
 void ChunkMesher::BuildGreedyMeshBuffers(
-    std::vector<GreedyMesh> &someGreedyMeshes,
-    FaceDirection aFaceDirection,
-    size_t& aVertexOffset,
-    std::vector<float> &outVertices,
-    std::vector<unsigned int> &outIndices
-) {
+    std::vector<GreedyMesh> &someGreedyMeshes, FaceDirection aFaceDirection,
+    size_t &aVertexOffset, std::vector<float> &outVertices,
+    std::vector<unsigned int> &outIndices, VoxelType aVoxelType) {
   auto &faceTemplateVerts = getFaceVertices(aFaceDirection);
   for (size_t i = 0; i < someGreedyMeshes.size(); i++) {
     auto &gMesh = someGreedyMeshes[i];
@@ -124,11 +145,12 @@ void ChunkMesher::BuildGreedyMeshBuffers(
       center.z -= 0.5f;
 
     // insert template verticess offset and scaled
-    float *v = &outVertices[(aVertexOffset + i) * 12];
+    float *v = &outVertices[(aVertexOffset + i) * 16];
     for (int j = 0; j < 4; j++) {
-      v[j * 3 + 0] = faceTemplateVerts[j * 3 + 0] * scale.x + center.x;
-      v[j * 3 + 1] = faceTemplateVerts[j * 3 + 1] * scale.y + center.y;
-      v[j * 3 + 2] = faceTemplateVerts[j * 3 + 2] * scale.z + center.z;
+      v[j * 4 + 0] = faceTemplateVerts[j * 3 + 0] * scale.x + center.x;
+      v[j * 4 + 1] = faceTemplateVerts[j * 3 + 1] * scale.y + center.y;
+      v[j * 4 + 2] = faceTemplateVerts[j * 3 + 2] * scale.z + center.z;
+      v[j * 4 + 3] = (float)aVoxelType;
     }
 
     // insert quad indices
@@ -210,10 +232,9 @@ void ChunkMesher::BinaryGreedyMeshFaces(
   }
 }
 
-
-void ChunkMesher::BuildFaceSlices(VoxelBitset *someCells,
-                                  SliceMask &outPositive,
-                                  SliceMask &outNegative) {
+void ChunkMesher::BuildFaceSlicesForAxis(VoxelBitset *someCells,
+                                         SliceMask &outPositive,
+                                         SliceMask &outNegative) {
   for (int row = 0; row < CHUNK_SIZE; row++) {
     VoxelBitset posBits[CHUNK_SIZE];
     VoxelBitset negBits[CHUNK_SIZE];
@@ -246,4 +267,3 @@ void ChunkMesher::BuildFaceSlices(VoxelBitset *someCells,
     }
   }
 }
-
