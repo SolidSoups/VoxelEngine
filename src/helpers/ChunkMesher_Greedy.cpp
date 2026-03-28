@@ -69,9 +69,9 @@ Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
     SliceMask faces[6];
 
     // Build face slices for every axis
-    BuildFaceSlicesForAxis(zy, faces[RIGHT], faces[LEFT]);
-    BuildFaceSlicesForAxis(xy, faces[BACKWARD], faces[FORWARD]);
-    BuildFaceSlicesForAxis(xz, faces[TOP], faces[BOTTOM]);
+    BuildFaceSlicesForAxis(zy, aChunk.zyOccupancy, faces[RIGHT], faces[LEFT]);
+    BuildFaceSlicesForAxis(xy, aChunk.xyOccupancy, faces[BACKWARD], faces[FORWARD]);
+    BuildFaceSlicesForAxis(xz, aChunk.xzOccupancy, faces[TOP], faces[BOTTOM]);
 
     std::vector<GreedyMesh> greedyMeshes[6];
     size_t greedyMeshCount = 0;
@@ -232,7 +232,8 @@ void ChunkMesher::BinaryGreedyMeshFaces(
   }
 }
 
-void ChunkMesher::BuildFaceSlicesForAxis(VoxelBitset *someCells,
+void ChunkMesher::BuildFaceSlicesForAxis(VoxelBitset *somePerTypeCells,
+                                         VoxelBitset *someOccupancyCells,
                                          SliceMask &outPositive,
                                          SliceMask &outNegative) {
   for (int row = 0; row < CHUNK_SIZE; row++) {
@@ -243,13 +244,13 @@ void ChunkMesher::BuildFaceSlicesForAxis(VoxelBitset *someCells,
     // NOTE: Hacker's delight bit matrix transpose uses MSB, so we need to
     // reverse the order
     for (int column = 0; column < CHUNK_SIZE; column++) {
-      VoxelBitset bitset =
-          someCells[row * CHUNK_SIZE + CHUNK_SIZE - 1 - column];
+      VoxelBitset typeBitset = somePerTypeCells[CHUNK_SIZE - 1 - column + row * CHUNK_SIZE];
+      VoxelBitset allBitset = someOccupancyCells[CHUNK_SIZE - 1 - column + row * CHUNK_SIZE];
 
-      // each bit of posBits[width] is set if
-      // the one above is empty (ie its a positive face)
-      posBits[column] = bitset & ~(bitset >> 1);
-      negBits[column] = bitset & ~(bitset << 1);
+      // Type is present at this cell, and nothing
+      // is above, or below
+      posBits[column] = typeBitset & ~(allBitset >> 1);
+      negBits[column] = typeBitset & ~(allBitset << 1);
     }
 
     // posBits[x] has bits set along Y

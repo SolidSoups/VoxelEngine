@@ -33,7 +33,7 @@ public: // Binary Greedy Meshing
   Mesh CreateMesh_Greedy(const VoxelChunk &aChunk);
 private:
   void BinaryGreedyMeshFaces(SliceMask &someFaces, FaceDirection aFaceDirection, std::vector<GreedyMesh> &outGreedyMeshes);
-  void BuildFaceSlicesForAxis(VoxelBitset *someCells, SliceMask &outPositive,
+  void BuildFaceSlicesForAxis(VoxelBitset *someCells, VoxelBitset *occupancy, SliceMask &outPositive,
                        SliceMask &outNegative);
   void BuildGreedyMeshBuffers(
     std::vector<GreedyMesh> &someGreedyMeshes,
