@@ -11,6 +11,7 @@
 #include "objects/Framebuffer.h"
 #include "objects/Renderpass.h"
 #include "objects/GeometryPass.h"
+#include "objects/LightingPass.h"
 
 #define DEFAULT_SCREEN_WIDTH 1000
 #define DEFAULT_SCREEN_HEIGHT 800
@@ -39,6 +40,7 @@ void Renderer::Initialize() {
 
   // initialize renderpasses
   myRenderpasses.push_back(std::make_unique<GeometryPass>());
+  myRenderpasses.push_back(std::make_unique<LightingPass>());
   for (auto &pass : myRenderpasses)
     pass->Initialize();
 
