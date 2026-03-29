@@ -52,11 +52,11 @@ void PhysicsEngine::SimulateChunk() {
 }
 
 bool PhysicsEngine::SimulateSand(const VoxelContext &ctx) {
-  return MoveVoxelStraightDown(ctx) | MoveVoxelDiagonallyDown(ctx);
+  return MoveVoxelStraightDown(ctx) || MoveVoxelDiagonallyDown(ctx);
 }
 
 bool PhysicsEngine::SimulateWater(const VoxelContext &ctx) {
-  return MoveVoxelStraightDown(ctx) | MoveVoxelDiagonallyDown(ctx) |
+  return MoveVoxelStraightDown(ctx) || MoveVoxelDiagonallyDown(ctx) ||
          MoveVoxelHorizontally(ctx);
 }
 
@@ -123,6 +123,13 @@ bool PhysicsEngine::MoveVoxelDiagonallyDown(const VoxelContext &ctx) {
 }
 
 bool PhysicsEngine::MoveVoxelHorizontally(const VoxelContext &ctx) {
+  if(rand() % 3 != 0)
+    return false;
+
+  if(ctx.gridPos.y > 0 && ctx.voxels[ctx.index - ctx.chunkSize] == VoxelType_EMPTY)
+    return false;
+  
+
   // collect candidates for diagonal down travel
   VoxelIndex candidates[4];
   size_t count = 0;
