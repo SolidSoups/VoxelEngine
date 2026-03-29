@@ -7,6 +7,7 @@ struct GLFWwindow;
 class KeybindsEditor;
 class BrushEditor;
 class PhysicsRuntime;
+class ViewportEditor;
 class Editor;
 
 class EditorLayer{
@@ -22,5 +23,7 @@ public:
 private:
   static std::unique_ptr<KeybindsEditor> myKeybindsEditor;
   static std::unique_ptr<BrushEditor> myBrushEditor;
+  static std::unique_ptr<ViewportEditor> myViewportEditor;
   static std::vector<std::unique_ptr<Editor>> myEditors;
+  static unsigned int myMainDockspace;
 };

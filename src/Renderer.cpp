@@ -1,5 +1,6 @@
 #include "Renderer.h"
 
+#include "ApplicationLayer.h""
 #include "objects/Shader.h"
 #include "objects/NaiveCube.h"
 #include "objects/ViewportGrid.h"
@@ -7,18 +8,24 @@
 #include "objects/VoxelType.h"
 #include "objects/Mesh.h"
 #include "objects/VertexMode.h"
+#include "objects/Framebuffer.h"
 
+#define DEFAULT_SCREEN_WIDTH 1000
+#define DEFAULT_SCREEN_HEIGHT 800
 std::unique_ptr<Shader> Renderer::myShader = nullptr;
 std::unique_ptr<Shader> Renderer::myGridShader = nullptr;
 std::unique_ptr<NaiveCube> Renderer::myNaiveCube = nullptr;
 std::unique_ptr<ViewportGrid> Renderer::myViewportGrid = nullptr;
+Framebuffer Renderer::frameBuffer;
 bool Renderer::myIsWireframeMode = false;
+
 
 void Renderer::Initialize() {
   Renderer::myShader = std::make_unique<Shader>(VERT_PATH, FRAG_PATH);
   Renderer::myGridShader = std::make_unique<Shader>(GRID_VERT_PATH, GRID_FRAG_PATH);
   Renderer::myNaiveCube = std::make_unique<NaiveCube>();
   Renderer::myViewportGrid = std::make_unique<ViewportGrid>();
+  Renderer::frameBuffer = Framebuffer(DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT);
 
   // set the uVoxelColors uniforms of the voxel shader
   Renderer::myShader->Bind();
@@ -48,6 +55,10 @@ void Renderer::SetWireframeMode(bool aMode){
 }
 
 void Renderer::BeginFrame(Camera &camera) {
+  auto size = ApplicationLayer::GetWindowSize();
+  Renderer::frameBuffer.Resize(size.x, size.y); 
+  Renderer::frameBuffer.Bind();
+
   // clear the background
   glClearColor(0, 0, 0, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -62,6 +73,10 @@ void Renderer::BeginFrame(Camera &camera) {
   Renderer::myGridShader->setMatrix4("projection", camera.GetProjectionMatrix());
   Renderer::myGridShader->setVec3("uCameraPos", camera.position);
 
+}
+
+void Renderer::EndFrame(){
+  Renderer::frameBuffer.Unbind(); 
 }
 
 

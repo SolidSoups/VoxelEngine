@@ -3,6 +3,7 @@
 #include <memory>
 
 #include <glm/mat4x4.hpp>
+#include "objects/Framebuffer.h"
 
 class NaiveCube;
 class ViewportGrid;
@@ -21,12 +22,14 @@ public:
   Renderer() = delete;
   static void Initialize();
   static void BeginFrame(Camera &aCamera);
+  static void EndFrame();
   static void Destroy();
   static void DrawCube(const glm::mat4 &aTransform, int aVoxelType);
   static void DrawChunk(const Mesh &aMesh, const glm::mat4 &aTransform, int aVoxelType, IVertexMode& aVertexMode);
   static void DrawVoxelGrid();
   static void SetWireframeMode(bool aMode);
 
+  static Framebuffer frameBuffer;
 private:
   static std::unique_ptr<Shader> myShader;
   static std::unique_ptr<Shader> myGridShader;

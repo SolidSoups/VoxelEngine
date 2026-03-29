@@ -8,6 +8,7 @@
 #include "CameraController.h"
 #include "VoxelPainter.h"
 #include "objects/Camera.h"
+#include "objects/Framebuffer.h"
 
 #define WINDOW_WIDTH 1920
 #define WINDOW_HEIGHT 1080
@@ -53,7 +54,8 @@ int main() {
     myScene.Update();
 
     // Update camera with new aspect ratio
-    myCamera.aspectRatio = ApplicationLayer::GetAspectRatio();
+    //
+    myCamera.aspectRatio = Renderer::frameBuffer.GetAspectRatio();
 
     // Control camera movement
     inputLayer.ControlCamera(window, myCameraController);
@@ -70,6 +72,7 @@ int main() {
     Renderer::DrawVoxelGrid();
 
     // end frame
+    Renderer::EndFrame();
     EditorLayer::EndFrame();
     ApplicationLayer::SwapBuffers();
   }

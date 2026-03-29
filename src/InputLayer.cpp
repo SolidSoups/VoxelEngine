@@ -41,9 +41,6 @@ void InputLayer::ControlScene(GLFWwindow *aWindow, Scene &aScene) {
 }
 
 void InputLayer::ControlCamera(GLFWwindow *aWindow, CameraController &aCamera) {
-  if (ImGui::GetIO().WantCaptureMouse)
-    return;
-
   // check for reset button
   if (glfwGetKey(aWindow, GLFW_KEY_R) == GLFW_PRESS) {
     aCamera.Reset();

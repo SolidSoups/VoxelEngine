@@ -4,6 +4,7 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include "Renderer.h"
 
 std::string ApplicationLayer::myWindowTitle = "";
 int ApplicationLayer::myWindowHeight = -1;
@@ -13,6 +14,7 @@ bool ApplicationLayer::myShouldClose = false;
 
 void framebuffer_size_callback(GLFWwindow *aWindow, int aWidth, int aHeight) {
   ApplicationLayer::Resize(aWidth, aHeight);
+  Renderer::frameBuffer.Resize(aWidth, aHeight);
 }
 
 void ApplicationLayer::Resize(int aNewWindowWidth, int aNewWindowHeight) {
