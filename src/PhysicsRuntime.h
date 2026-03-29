@@ -38,7 +38,7 @@ public:
   inline float GetTotalTickLength(){
     return 1.0f / stepsPerSecond;
   }
-  int stepsPerSecond = 1;
+  int stepsPerSecond = 16;
 private:
 
   void RunAuto(float aDeltaTime);

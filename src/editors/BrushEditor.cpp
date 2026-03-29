@@ -15,9 +15,9 @@ void BrushEditor::Draw() {
 
   ImGui::Separator();
 
-  static glm::ivec3 drawPositionA{0};
+  static glm::ivec3 drawPositionA{32};
   static glm::ivec3 drawPositionB{0};
-  static int radius = 0;
+  static int radius = 10;
 
   ImGui::Dummy(ImVec2(0, 5));
   if(myBrushType == BrushType_VOXEL){
@@ -29,7 +29,7 @@ void BrushEditor::Draw() {
     DrawIVec3("Position B", "##PositionB", drawPositionB);
   }
   else if(myBrushType == BrushType_SPHERE){
-    DrawIVec3("Radius", "##PositionA", drawPositionA);
+    DrawIVec3("Center", "##PositionA", drawPositionA);
     ImGui::Dummy(ImVec2(0, 3));
     ImGui::AlignTextToFramePadding();
     ImGui::Text("Radius");
