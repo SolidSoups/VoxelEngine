@@ -43,8 +43,11 @@ void EditorLayer::BeginFrame() {
   myMainDockspace = ImGui::DockSpaceOverViewport();
   static bool firstFrame = true;
   if(firstFrame){
-    ImGui::DockBuilderDockWindow("Viewport", myMainDockspace);
-    firstFrame = false;
+    auto* centralNode = ImGui::DockBuilderGetCentralNode(myMainDockspace);
+    if(centralNode){
+      ImGui::DockBuilderDockWindow("Viewport", centralNode->ID);
+      firstFrame = false;
+    }
   }
 
 

@@ -86,7 +86,7 @@ void Renderer::RenderFrame(Camera &aCamera, Scene &aScene, glm::ivec2 viewportSi
   if(viewportSize.x <= 0 || viewportSize.y <= 0)
     return;
 
-  WireframeVertexMode vertexMode;
+  FilledVertexMode vertexMode;
   RenderpassInfo info{viewportSize, nullptr, aCamera, aScene, vertexMode};
 
   size_t size = myRenderpasses.size();
