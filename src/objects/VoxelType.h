@@ -5,10 +5,10 @@
 
 #include <glm/vec3.hpp>
 
-#define CHUNK_SIZE 32
+#define CHUNK_SIZE 64
 #define VOXEL_TYPES 3
-using VoxelIndex = uint16_t;
-using VoxelBitset = uint32_t;
+using VoxelIndex = uint32_t;
+using VoxelBitset = uint64_t;
 using Voxel = uint8_t;
 enum VoxelType : uint8_t {
   VoxelType_EMPTY = 0,

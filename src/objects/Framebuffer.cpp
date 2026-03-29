@@ -2,8 +2,9 @@
 
 #include <print>
 
-Framebuffer::Framebuffer(unsigned int aWidth, unsigned int aHeight)
-    : myWidth(aWidth), myHeight(aHeight) {
+Framebuffer::Framebuffer(unsigned int aWidth, unsigned int aHeight,
+                         std::vector<AttachmentSpec> someAttachments)
+    : myWidth(aWidth), myHeight(aHeight), myAttachments(someAttachments) {
   Create();
 }
 
@@ -11,25 +12,29 @@ Framebuffer::~Framebuffer() { Destroy(); }
 
 Framebuffer::Framebuffer(Framebuffer &&other) noexcept {
   fbo = other.fbo;
-  texture = other.texture;
+  textures = std::move(other.textures);
+  myAttachments = std::move(other.myAttachments);
   depthStencil = other.depthStencil;
   myWidth = other.myWidth;
   myHeight = other.myHeight;
   other.fbo = 0;
-  other.texture = 0;
+  other.textures.clear();
+  other.myAttachments.clear();
   other.depthStencil = 0;
 }
 Framebuffer &Framebuffer::operator=(Framebuffer &&other) noexcept {
   if (this != &other) {
     Destroy();
-    fbo = other.fbo;
-    texture = other.texture;
-    depthStencil = other.depthStencil;
-    myWidth = other.myWidth;
-    myHeight = other.myHeight;
-    other.fbo = 0;
-    other.texture = 0;
-    other.depthStencil = 0;
+  fbo = other.fbo;
+  textures = std::move(other.textures);
+  myAttachments = std::move(other.myAttachments);
+  depthStencil = other.depthStencil;
+  myWidth = other.myWidth;
+  myHeight = other.myHeight;
+  other.fbo = 0;
+  other.textures.clear();
+  other.myAttachments.clear();
+  other.depthStencil = 0;
   }
   return *this;
 }
@@ -37,20 +42,25 @@ Framebuffer &Framebuffer::operator=(Framebuffer &&other) noexcept {
 void Framebuffer::Create() {
   glGenFramebuffers(1, &fbo);
   glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+  
+  textures.resize(myAttachments.size());
+  glGenTextures(myAttachments.size(), textures.data());
 
-  // Always generate one texture attachment
-  glGenTextures(1, &texture);
-  glBindTexture(GL_TEXTURE_2D, texture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, myWidth, myHeight, 0, GL_RGB,
-               GL_UNSIGNED_INT, nullptr);
-
-  // set filtering to interpolation
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-  // attach texture to color attachment 0, which is texture output
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                         texture, 0);
+  std::vector<unsigned int> drawBuffers;
+  for(size_t i=0; i<myAttachments.size(); i++){
+    auto& spec = myAttachments[i];
+    glBindTexture(GL_TEXTURE_2D, textures[i]);
+    glTexImage2D(GL_TEXTURE_2D, 0, spec.internalFormat, myWidth, myHeight,
+                 0, spec.format, spec.type, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, 
+                           GL_TEXTURE_2D, textures[i], 0);
+    drawBuffers.push_back(GL_COLOR_ATTACHMENT0 + i);
+  }
+  
+  // tell opengl which buffers to draw to
+  glDrawBuffers(drawBuffers.size(), drawBuffers.data());
 
   // create depth and stencil buffer
   glGenRenderbuffers(1, &depthStencil);
@@ -87,8 +97,9 @@ void Framebuffer::Resize(unsigned int newWidth, unsigned int newHeight) {
 void Framebuffer::Destroy() {
   if (fbo)
     glDeleteFramebuffers(1, &fbo);
-  if (texture)
-    glDeleteTextures(1, &texture);
+  if(!textures.empty())
+    glDeleteTextures(textures.size(), textures.data());
   if (depthStencil)
     glDeleteRenderbuffers(1, &depthStencil);
+  textures.clear();
 }

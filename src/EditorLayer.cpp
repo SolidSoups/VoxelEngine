@@ -56,6 +56,10 @@ void EditorLayer::BeginFrame() {
   }
 }
 
+glm::ivec2 EditorLayer::GetViewportSize(){
+  return EditorLayer::myViewportEditor->viewportSize;
+}
+
 void EditorLayer::AddRuntimeEditor(PhysicsRuntime* aPhysicsRuntime){
   EditorLayer::myEditors.push_back(
     std::make_unique<PhysicsEditor>(aPhysicsRuntime)

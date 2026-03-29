@@ -15,6 +15,7 @@ public:
   Shader& operator=(Shader&& other);
 
   void Bind();
+  void Unbind();
   inline bool IsValid() const { return myIsValid; }
   inline unsigned int GetID() const { return myID; }
 public:

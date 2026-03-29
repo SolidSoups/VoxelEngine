@@ -14,7 +14,7 @@ bool ApplicationLayer::myShouldClose = false;
 
 void framebuffer_size_callback(GLFWwindow *aWindow, int aWidth, int aHeight) {
   ApplicationLayer::Resize(aWidth, aHeight);
-  Renderer::frameBuffer.Resize(aWidth, aHeight);
+  Renderer::framebuffer.Resize(aWidth, aHeight);
 }
 
 void ApplicationLayer::Resize(int aNewWindowWidth, int aNewWindowHeight) {

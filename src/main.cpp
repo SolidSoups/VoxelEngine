@@ -54,8 +54,6 @@ int main() {
     myScene.Update();
 
     // Update camera with new aspect ratio
-    //
-    myCamera.aspectRatio = Renderer::frameBuffer.GetAspectRatio();
 
     // Control camera movement
     inputLayer.ControlCamera(window, myCameraController);
@@ -65,10 +63,12 @@ int main() {
 
     // Begin frame
     EditorLayer::BeginFrame();
-    Renderer::BeginFrame(myCamera);
+    glm::ivec2 viewportSize = EditorLayer::GetViewportSize();
+    myCamera.aspectRatio = (float)viewportSize.x / viewportSize.y;
+    Renderer::BeginFrame(myCamera, viewportSize);
 
     // Render
-    myScene.Render();
+    Renderer::RenderFrame(myCamera, myScene, viewportSize);
     Renderer::DrawVoxelGrid();
 
     // end frame

@@ -48,7 +48,38 @@ void transpose32(uint32_t a[32]) {
     }
   }
 }
+
+// Transposes a 64x64 bitmatrix.
+void transpose64c(uint64_t a[64]) {
+  static const struct {
+    int shift;
+    uint64_t mask;
+  } stages[] = {{32, 0x00000000FFFFFFFF}, {16, 0x0000FFFF0000FFFF},
+                {8, 0x00FF00FF00FF00FF},  {4, 0x0F0F0F0F0F0F0F0F},
+                {2, 0x3333333333333333},  {1, 0x5555555555555555}};
+
+  for (auto [j, m] : stages) {
+    for (int k = 0; k < 64; k = ((k | j) + 1) & ~j) {
+      uint64_t t = (a[k] ^ (a[k | j] >> j)) & m;
+      a[k] ^= t;
+      a[k | j] ^= t << j;
+    }
+  }
+}
 } // namespace
+
+std::string getTypeStr(size_t aType) {
+  switch (aType) {
+  case 0:
+    return "STONE";
+  case 1:
+    return "SAND";
+  case 2:
+    return "WATER";
+  }
+
+  return "Unknown";
+}
 
 Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
   // mesh buffers
@@ -59,6 +90,9 @@ Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
   // Greedy mesh on individual block types
   // to allow setting color attributes
   for (int t = 0; t < VOXEL_TYPES; t++) {
+    std::string typeStr = getTypeStr(t);
+    std::println("Greedy meshing type: {0}", typeStr);
+
     // Get isolated axis views of the type
     VoxelBitset *zy = aChunk.zyIsolatedVoxels + t * CHUNK_SIZE * CHUNK_SIZE;
     VoxelBitset *xy = aChunk.xyIsolatedVoxels + t * CHUNK_SIZE * CHUNK_SIZE;
@@ -69,10 +103,14 @@ Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
     SliceMask faces[6];
 
     // Build face slices for every axis
+    std::println("Building face slices");
     BuildFaceSlicesForAxis(zy, aChunk.zyOccupancy, faces[RIGHT], faces[LEFT]);
-    BuildFaceSlicesForAxis(xy, aChunk.xyOccupancy, faces[BACKWARD], faces[FORWARD]);
+    BuildFaceSlicesForAxis(xy, aChunk.xyOccupancy, faces[BACKWARD],
+                           faces[FORWARD]);
     BuildFaceSlicesForAxis(xz, aChunk.xzOccupancy, faces[TOP], faces[BOTTOM]);
 
+
+    std::println("Building greedy meshes for every face");
     std::vector<GreedyMesh> greedyMeshes[6];
     size_t greedyMeshCount = 0;
     // for every face direction...
@@ -83,18 +121,6 @@ Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
     }
 
     // DEBUG
-    std::string typeStr;
-    switch (t) {
-    case 0:
-      typeStr = "STONE";
-      break;
-    case 1:
-      typeStr = "SAND";
-      break;
-    case 2:
-      typeStr = "WATER";
-      break;
-    }
     std::println("{0}: Build greedy mesh. Number of triangles: {1}", typeStr,
                  greedyMeshCount * 2);
 
@@ -102,8 +128,9 @@ Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
     vertices.resize(vertices.size() + greedyMeshCount * 16);
     indices.resize(indices.size() + greedyMeshCount * 6);
 
+    std::println("Stiching togehter faces");
     // for every face direction...
-    VoxelType voxelType = (VoxelType)(t+1);
+    VoxelType voxelType = (VoxelType)(t + 1);
     for (int fd = 0; fd < 6; fd++) {
       // ... build vertices and indices
       std::vector<GreedyMesh> &faceMeshes = greedyMeshes[fd];
@@ -244,19 +271,21 @@ void ChunkMesher::BuildFaceSlicesForAxis(VoxelBitset *somePerTypeCells,
     // NOTE: Hacker's delight bit matrix transpose uses MSB, so we need to
     // reverse the order
     for (int column = 0; column < CHUNK_SIZE; column++) {
-      VoxelBitset typeBitset = somePerTypeCells[CHUNK_SIZE - 1 - column + row * CHUNK_SIZE];
-      VoxelBitset allBitset = someOccupancyCells[CHUNK_SIZE - 1 - column + row * CHUNK_SIZE];
+      VoxelBitset typeBitset =
+          somePerTypeCells[CHUNK_SIZE - 1 - column + row * CHUNK_SIZE];
+      VoxelBitset allBitset =
+          someOccupancyCells[CHUNK_SIZE - 1 - column + row * CHUNK_SIZE];
 
       // Type is present at this cell, and nothing
       // is above, or below
-      posBits[column] = typeBitset & ~(allBitset >> 1);
-      negBits[column] = typeBitset & ~(allBitset << 1);
+      posBits[column] = typeBitset & ~(allBitset >> VoxelBitset(1));
+      negBits[column] = typeBitset & ~(allBitset << VoxelBitset(1));
     }
 
     // posBits[x] has bits set along Y
     // we transpose them so posBits[y] has bits set along X instead
-    transpose32(posBits);
-    transpose32(negBits);
+    transpose64c(posBits);
+    transpose64c(negBits);
 
     // NOTE: Hacker's delight bit matrix transpose uses MSB, we use LSB. Reverse
     // order to get correct aisle levels

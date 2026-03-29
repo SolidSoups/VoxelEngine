@@ -27,6 +27,7 @@ public:
   void Render();
   void Update();
   inline VoxelChunk& GetVoxelChunk() { return myVoxelChunk; }
+  inline Mesh& GetVoxelMesh() { return myChunkMesh; }
 
   bool toggleWireframe = false;
 private:

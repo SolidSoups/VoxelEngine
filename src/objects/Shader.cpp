@@ -108,7 +108,10 @@ Shader& Shader::operator=(Shader&& other){
 
 void Shader::Bind(){
   if(myID) glUseProgram(myID);
-  else std::print("SHADER IS INVALID!");
+  else std::println("SHADER IS INVALID!");
+}
+void Shader::Unbind(){
+  glUseProgram(0);
 }
 
 

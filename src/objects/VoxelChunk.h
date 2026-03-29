@@ -65,6 +65,7 @@ public:
     UpdateBitsets(p2.x, p2.y, p2.z, xyzVoxels[aIndex2] != VoxelType_EMPTY);
   }
 
+
   // Returns the side length of the voxel chunk
   inline VoxelIndex GetSize() const { return CHUNK_SIZE; }
 
@@ -73,9 +74,9 @@ public:
 
   // I know you. I don't like you. -- Joe Biden
   template <typename Pred>
-  void QueryVoxels(Pred aPredicate, std::vector<uint16_t> &outIndices) {
+  void QueryVoxels(Pred aPredicate, std::vector<VoxelIndex> &outIndices) {
     size_t size = CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE;
-    for (uint16_t i = 0; i < size; i++) {
+    for (VoxelIndex i = 0; i < size; i++) {
       if (aPredicate(i, xyzVoxels[i])) {
         outIndices.push_back(i);
       }
@@ -84,16 +85,21 @@ public:
 
   uint64_t CountNonEmptyVoxels() const;
 
+  inline glm::mat4 GetTransform() const{
+    constexpr glm::vec3 scale = glm::vec3(4.0f / CHUNK_SIZE);
+    return glm::scale(glm::mat4(1.0), scale); 
+  }
+
 private:
   inline void UpdateBitsets(int aX, int aY, int aZ, bool isSolid) {
     if (isSolid) {
-      zyOccupancy[aZ + aY * CHUNK_SIZE] |= 1 << aX;
-      xzOccupancy[aX + aZ * CHUNK_SIZE] |= 1 << aY;
-      xyOccupancy[aX + aY * CHUNK_SIZE] |= 1 << aZ;
+      zyOccupancy[aZ + aY * CHUNK_SIZE] |= VoxelBitset(1) << aX;
+      xzOccupancy[aX + aZ * CHUNK_SIZE] |= VoxelBitset(1) << aY;
+      xyOccupancy[aX + aY * CHUNK_SIZE] |= VoxelBitset(1) << aZ;
     } else {
-      zyOccupancy[aZ + aY * CHUNK_SIZE] &= ~(1 << aX);
-      xzOccupancy[aX + aZ * CHUNK_SIZE] &= ~(1 << aY);
-      xyOccupancy[aX + aY * CHUNK_SIZE] &= ~(1 << aZ);
+      zyOccupancy[aZ + aY * CHUNK_SIZE] &= ~(VoxelBitset(1) << aX);
+      xzOccupancy[aX + aZ * CHUNK_SIZE] &= ~(VoxelBitset(1) << aY);
+      xyOccupancy[aX + aY * CHUNK_SIZE] &= ~(VoxelBitset(1) << aZ);
     }
   }
 
@@ -104,22 +110,22 @@ private:
     // xy axis (bitset over z)
     int xyOffset = aX + aY * CHUNK_SIZE;
     for(int t=0; t<VOXEL_TYPES; t++)
-      xyIsolatedVoxels[xyOffset + t * typeStride] &= ~(1 << aZ);
+      xyIsolatedVoxels[xyOffset + t * typeStride] &= ~(VoxelBitset(1) << aZ);
 
     // zy axis (bitset over x)
     int zyOffset = aZ + aY * CHUNK_SIZE;
     for(int t=0; t<VOXEL_TYPES; t++)
-      zyIsolatedVoxels[zyOffset + t * typeStride] &= ~(1 << aX);
+      zyIsolatedVoxels[zyOffset + t * typeStride] &= ~(VoxelBitset(1) << aX);
 
     // xz axis (bitset over y)
     int xzOffset = aX + aZ * CHUNK_SIZE;
     for(int t=0; t<VOXEL_TYPES; t++)
-      xzIsolatedVoxels[xzOffset + t * typeStride] &= ~(1 << aY);
+      xzIsolatedVoxels[xzOffset + t * typeStride] &= ~(VoxelBitset(1) << aY);
 
     if(aType == VoxelType_EMPTY) return;
-    xyIsolatedVoxels[xyOffset + targetIndex * typeStride] |= (1 << aZ);
-    zyIsolatedVoxels[zyOffset + targetIndex * typeStride] |= (1 << aX);
-    xzIsolatedVoxels[xzOffset + targetIndex * typeStride] |= (1 << aY);
+    xyIsolatedVoxels[xyOffset + targetIndex * typeStride] |= (VoxelBitset(1) << aZ);
+    zyIsolatedVoxels[zyOffset + targetIndex * typeStride] |= (VoxelBitset(1) << aX);
+    xzIsolatedVoxels[xzOffset + targetIndex * typeStride] |= (VoxelBitset(1) << aY);
   }
 
 public:

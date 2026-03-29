@@ -27,6 +27,8 @@ VoxelChunk::~VoxelChunk() {
   delete[] xzOccupancy;
   delete[] zyOccupancy;
   delete[] xyIsolatedVoxels;
+  delete[] zyIsolatedVoxels;
+  delete[] xzIsolatedVoxels;
 }
 
 // MOVE ASSIGNMENT AND OPERATOR

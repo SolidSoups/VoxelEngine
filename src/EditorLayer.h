@@ -20,6 +20,7 @@ public:
 public:
   static void AddRuntimeEditor(PhysicsRuntime* aPhysicsRuntime);
 
+  static glm::ivec2 GetViewportSize();
 private:
   static std::unique_ptr<KeybindsEditor> myKeybindsEditor;
   static std::unique_ptr<BrushEditor> myBrushEditor;
