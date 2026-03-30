@@ -84,6 +84,7 @@ public:
   }
 
   uint64_t CountNonEmptyVoxels() const;
+  uint64_t CountVoxelType(VoxelType aType) const;
 
   inline glm::mat4 GetTransform() const{
     constexpr glm::vec3 scale = glm::vec3(4.0f / CHUNK_SIZE);

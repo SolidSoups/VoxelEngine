@@ -82,6 +82,10 @@ std::string getTypeStr(size_t aType) {
 }
 
 Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
+  // start sample
+  MeshStats newStats;
+  newStats.sampleStart = std::chrono::high_resolution_clock::now();
+
   // mesh buffers
   std::vector<float> vertices;
   std::vector<unsigned int> indices;
@@ -91,7 +95,6 @@ Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
   // to allow setting color attributes
   for (int t = 0; t < VOXEL_TYPES; t++) {
     std::string typeStr = getTypeStr(t);
-    std::println("Greedy meshing type: {0}", typeStr);
 
     // Get isolated axis views of the type
     VoxelBitset *zy = aChunk.zyIsolatedVoxels + t * CHUNK_SIZE * CHUNK_SIZE;
@@ -103,14 +106,12 @@ Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
     SliceMask faces[6];
 
     // Build face slices for every axis
-    std::println("Building face slices");
     BuildFaceSlicesForAxis(zy, aChunk.zyOccupancy, faces[RIGHT], faces[LEFT]);
     BuildFaceSlicesForAxis(xy, aChunk.xyOccupancy, faces[BACKWARD],
                            faces[FORWARD]);
     BuildFaceSlicesForAxis(xz, aChunk.xzOccupancy, faces[TOP], faces[BOTTOM]);
 
 
-    std::println("Building greedy meshes for every face");
     std::vector<GreedyMesh> greedyMeshes[6];
     size_t greedyMeshCount = 0;
     // for every face direction...
@@ -121,14 +122,16 @@ Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
     }
 
     // DEBUG
-    std::println("{0}: Build greedy mesh. Number of triangles: {1}", typeStr,
-                 greedyMeshCount * 2);
+    switch(t){
+      case 0: newStats.stoneFaceCount = greedyMeshCount * 2;
+      case 1: newStats.sandFaceCount = greedyMeshCount * 2;
+      case 2: newStats.waterFaceCount = greedyMeshCount * 2;
+    }
 
     // Resize mesh buffers to avoid repeated allocations
     vertices.resize(vertices.size() + greedyMeshCount * 16);
     indices.resize(indices.size() + greedyMeshCount * 6);
 
-    std::println("Stiching togehter faces");
     // for every face direction...
     VoxelType voxelType = (VoxelType)(t + 1);
     for (int fd = 0; fd < 6; fd++) {
@@ -138,9 +141,17 @@ Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
                              vertices, indices, voxelType);
     }
   }
+  newStats.meshMemory = sizeof(float) * vertices.size() + sizeof(unsigned int) * indices.size();
 
   // return new mesh
-  return {vertices, indices};
+  Mesh newMesh{vertices, indices};
+
+  // end sample
+  newStats.sampleEnd = std::chrono::high_resolution_clock::now();
+
+  latestStats = newStats;
+
+  return newMesh;
 }
 
 void ChunkMesher::BuildGreedyMeshBuffers(

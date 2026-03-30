@@ -1,6 +1,7 @@
 #include "EditorLayer.h"
 
 #include <imgui.h>
+#include <implot.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 
@@ -9,24 +10,28 @@
 #include "editors/KeybindsEditor.h"
 #include "editors/BrushEditor.h"
 #include "editors/ViewportEditor.h"
+#include "editors/StatsEditor.h"
 #include "imgui_internal.h"
 
 std::unique_ptr<KeybindsEditor> EditorLayer::myKeybindsEditor;
 std::unique_ptr<BrushEditor> EditorLayer::myBrushEditor;
 std::vector<std::unique_ptr<Editor>> EditorLayer::myEditors;
 std::unique_ptr<ViewportEditor> EditorLayer::myViewportEditor = nullptr;
+std::unique_ptr<StatsEditor> EditorLayer::myStatsEditor = nullptr;
 unsigned int EditorLayer::myMainDockspace = 0;
 
 void EditorLayer::Initialize(GLFWwindow *aWindow) {
   // Set dear imgui context
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
+  ImPlot::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
   io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
   // setup platform/renderer backends
   ImGui_ImplGlfw_InitForOpenGL(aWindow, true);
   ImGui_ImplOpenGL3_Init();
+
 
 
   // initialize editors
@@ -40,6 +45,7 @@ void EditorLayer::BeginFrame() {
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
 
+  // make viewport into the centeral dockspace node
   myMainDockspace = ImGui::DockSpaceOverViewport();
   static bool firstFrame = true;
   if(firstFrame){
@@ -54,6 +60,10 @@ void EditorLayer::BeginFrame() {
   myKeybindsEditor->Draw();
   myBrushEditor->Draw();
   myViewportEditor->Draw();
+  if(myStatsEditor){
+    myStatsEditor->CollectStats();
+    myStatsEditor->Draw();
+  }
   for(auto& editor : EditorLayer::myEditors){
     editor->Draw();
   }
@@ -68,6 +78,9 @@ void EditorLayer::AddRuntimeEditor(PhysicsRuntime* aPhysicsRuntime){
     std::make_unique<PhysicsEditor>(aPhysicsRuntime)
   );
 }
+void EditorLayer::AddStatsEditor(Scene& aScene){
+  myStatsEditor = std::make_unique<StatsEditor>(aScene);
+}
 
 void EditorLayer::EndFrame() {
   ImGui::Render();
@@ -79,5 +92,6 @@ void EditorLayer::Shutdown() {
 
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();
+  ImPlot::DestroyContext();
   ImGui::DestroyContext();
 }

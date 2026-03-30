@@ -1,5 +1,6 @@
 #include "VoxelChunk.h"
 #include "VoxelType.h"
+#include <bit>
 
 // CONSTRUCTOR/DESTRUCTOR
 VoxelChunk::VoxelChunk() {
@@ -61,6 +62,16 @@ uint64_t VoxelChunk::CountNonEmptyVoxels() const {
   size_t size = CHUNK_SIZE * CHUNK_SIZE;
   for (size_t i = 0; i < size; i++) {
     count += std::popcount(xzOccupancy[i]);
+  }
+  return count;
+}
+uint64_t VoxelChunk::CountVoxelType(VoxelType aType) const {
+  int targetIndex = (int)aType - 1;
+  uint64_t count = 0;
+  size_t size = CHUNK_SIZE * CHUNK_SIZE;
+  VoxelBitset* xzBitset = &xzIsolatedVoxels[targetIndex * size];
+  for(size_t i=0; i<size; i++){
+    count += std::popcount(xzBitset[i]);
   }
   return count;
 }

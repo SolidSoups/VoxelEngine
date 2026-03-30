@@ -8,6 +8,8 @@ class KeybindsEditor;
 class BrushEditor;
 class PhysicsRuntime;
 class ViewportEditor;
+class StatsEditor;
+class Scene;
 class Editor;
 
 class EditorLayer{
@@ -19,12 +21,14 @@ public:
 
 public:
   static void AddRuntimeEditor(PhysicsRuntime* aPhysicsRuntime);
+  static void AddStatsEditor(Scene& aStatsEditor);
 
   static glm::ivec2 GetViewportSize();
 private:
   static std::unique_ptr<KeybindsEditor> myKeybindsEditor;
   static std::unique_ptr<BrushEditor> myBrushEditor;
   static std::unique_ptr<ViewportEditor> myViewportEditor;
+  static std::unique_ptr<StatsEditor> myStatsEditor;
   static std::vector<std::unique_ptr<Editor>> myEditors;
   static unsigned int myMainDockspace;
 };

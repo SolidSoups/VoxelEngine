@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <vector>
 #include <glm/vec3.hpp>
 #include "../objects/VoxelType.h"
@@ -20,6 +21,17 @@ enum FaceDirection{
 struct GreedyMesh {
   glm::vec3 startPos;
   glm::vec3 endPos;
+};
+struct MeshStats {
+  uint32_t stoneFaceCount;
+  uint32_t sandFaceCount;
+  uint32_t waterFaceCount;
+  uint32_t meshMemory;
+  std::chrono::high_resolution_clock::time_point sampleStart;
+  std::chrono::high_resolution_clock::time_point sampleEnd;
+  double getMsTiming() const {
+    return std::chrono::duration<float, std::milli>(sampleEnd - sampleStart).count();
+  }
 };
 
 class ChunkMesher {
@@ -43,4 +55,7 @@ private:
     std::vector<unsigned int> &outIndices,
     VoxelType aVoxelType
   );
+
+public:
+  MeshStats latestStats;
 };

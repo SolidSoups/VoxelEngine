@@ -28,6 +28,7 @@ public:
   void Update();
   inline VoxelChunk& GetVoxelChunk() { return myVoxelChunk; }
   inline Mesh& GetVoxelMesh() { return myChunkMesh; }
+  inline MeshStats GetStats() const { return myChunkMesher.latestStats; }
 
   bool toggleWireframe = false;
 private:

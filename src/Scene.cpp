@@ -21,12 +21,7 @@ Scene::Scene() {
 
 void Scene::Update(){
   if(myVoxelChunk.isDirty){
-    std::println("Chunk is dirty, remeshing");
-    auto start = std::chrono::high_resolution_clock::now();
     myChunkMesh = myChunkMesher.CreateMesh_Greedy(myVoxelChunk);
-    auto end = std::chrono::high_resolution_clock::now();
-    auto us = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-    std::println("Loading mesh finished. Time: {0:.2f}ms", us / 1000.0);
     myVoxelChunk.isDirty = false;
   }
 }

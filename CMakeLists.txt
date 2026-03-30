@@ -38,6 +38,13 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(imgui)
 
+FetchContent_Declare(
+  implot
+  GIT_REPOSITORY https://github.com/epezent/implot
+  GIT_TAG v0.17
+)
+FetchContent_MakeAvailable(implot)
+
 # nlohmann/json
 FetchContent_Declare(
   nlohmann_json
@@ -50,7 +57,7 @@ FetchContent_MakeAvailable(nlohmann_json)
 add_library(stb INTERFACE)
 target_include_directories(stb INTERFACE ${CMAKE_SOURCE_DIR}/external/stb)
 
-
+# imgui setup
 add_library(imgui STATIC
   ${imgui_SOURCE_DIR}/imgui.cpp
   ${imgui_SOURCE_DIR}/imgui_draw.cpp
@@ -67,6 +74,18 @@ target_include_directories(imgui
 )
 target_link_libraries(imgui PRIVATE glfw glad)
 
+# implot setup
+add_library(implot STATIC
+  ${implot_SOURCE_DIR}/implot.cpp
+  ${implot_SOURCE_DIR}/implot_items.cpp
+  ${implot_SOURCE_DIR}/implot_demo.cpp
+)
+target_include_directories(implot
+PUBLIC
+  ${implot_SOURCE_DIR}/
+  ${imgui_SOURCE_DIR}/
+)
+
 # TARGET
 add_executable(voxel_engine)
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.cpp" "src/*.h")
@@ -77,6 +96,7 @@ target_link_libraries(voxel_engine
     glfw
     glm
     imgui
+    implot
     nlohmann_json
     stb
 )
@@ -88,6 +108,9 @@ target_precompile_headers(voxel_engine
     <glm/glm.hpp>
     <glm/gtc/matrix_transform.hpp>
     <nlohmann/json.hpp>
+
+    <implot.h>
+    <imgui.h>
 
     <string>
 )
