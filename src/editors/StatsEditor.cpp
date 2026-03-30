@@ -51,7 +51,7 @@ void StatsEditor::Draw() {
                             ImGuiCond_Always);
   if (ImPlot::BeginPlot("Voxel Count")) {
     ImPlot::SetNextLineStyle(ImVec4(0.5, 0.5, 0.5, 1.0));
-    ImPlot::PlotLine("STONE", myTimepoints.data(), mySandVoxelCounts.data(),
+    ImPlot::PlotLine("STONE", myTimepoints.data(), myStoneVoxelCounts.data(),
                      count, 0, offset, sizeof(uint32_t));
     isVoxStoneHidden = ImPlot::IsItemHidden("STONE");
     if (!isVoxStoneHidden)
@@ -63,7 +63,7 @@ void StatsEditor::Draw() {
     ImPlot::SetNextLineStyle(ImVec4(1.0, 1.0, 0, 1));
     ImPlot::PlotLine("SAND", myTimepoints.data(), mySandVoxelCounts.data(),
                      count, 0, offset, sizeof(uint32_t));
-    isVoxStoneHidden = ImPlot::IsItemHidden("SAND");
+    isVoxSandHidden = ImPlot::IsItemHidden("SAND");
     if (!isVoxSandHidden)
       ImPlot::Annotation(myTimepoints[currentIndex],
                          mySandVoxelCounts[currentIndex],
