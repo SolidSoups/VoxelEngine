@@ -33,7 +33,7 @@ int main() {
   PhysicsRuntime physicsRuntime(myScene);
 
   EditorLayer::AddRuntimeEditor(&physicsRuntime);
-  EditorLayer::AddStatsEditor(myScene);
+  EditorLayer::AddStatsEditor(myScene, physicsRuntime);
 
   VoxelPainter::SetCurrentChunk(&myScene.GetVoxelChunk());
   Renderer::SetWireframeMode(true);

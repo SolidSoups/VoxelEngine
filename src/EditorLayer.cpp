@@ -78,8 +78,8 @@ void EditorLayer::AddRuntimeEditor(PhysicsRuntime* aPhysicsRuntime){
     std::make_unique<PhysicsEditor>(aPhysicsRuntime)
   );
 }
-void EditorLayer::AddStatsEditor(Scene& aScene){
-  myStatsEditor = std::make_unique<StatsEditor>(aScene);
+void EditorLayer::AddStatsEditor(Scene& aScene, PhysicsRuntime& aRuntime){
+  myStatsEditor = std::make_unique<StatsEditor>(aScene, aRuntime);
 }
 
 void EditorLayer::EndFrame() {

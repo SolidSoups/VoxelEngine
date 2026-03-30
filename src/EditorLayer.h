@@ -21,7 +21,7 @@ public:
 
 public:
   static void AddRuntimeEditor(PhysicsRuntime* aPhysicsRuntime);
-  static void AddStatsEditor(Scene& aStatsEditor);
+  static void AddStatsEditor(Scene& aStatsEditor, PhysicsRuntime& aPhysicsRuntime);
 
   static glm::ivec2 GetViewportSize();
 private:
