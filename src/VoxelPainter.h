@@ -19,6 +19,7 @@ public:
                         const glm::ivec3 &aGridPosB, VoxelChunk &aChunk);
   static void PaintVoxel(const glm::ivec3 &aGridPos, VoxelChunk &aChunk);
   static void EditorPaint(const glm::ivec3 &aGridPosA, const glm::ivec3& aGridPosB, int aRadius);
+  static glm::ivec3 DDARaycastGetPosition(const glm::vec3 &startPos, const glm::vec3& direction, const VoxelChunk& aChunk);
 
 private:
   static VoxelType myBrushColor;

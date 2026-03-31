@@ -2,6 +2,7 @@
 
 #include <print>
 #include <vector>
+#include <algorithm>
 
 #include "objects/VoxelChunk.h"
 #include "helpers/AABB.h"
@@ -82,4 +83,85 @@ void VoxelPainter::PaintRect(const glm::ivec3 &aGridPosA,
 void VoxelPainter::PaintVoxel(const glm::ivec3 &aGridPos, VoxelChunk &aChunk) {
   aChunk.SetVoxel(aGridPos, VoxelPainter::myBrushColor);
   aChunk.isDirty = true;
+}
+glm::ivec3 VoxelPainter::DDARaycastGetPosition(const glm::vec3 &aRayOrigin, const glm::vec3& aRayDirection, const VoxelChunk& aChunk){
+  constexpr float stepSize = 4.0f / CHUNK_SIZE; 
+  constexpr int MAX_STEPS = CHUNK_SIZE*CHUNK_SIZE;
+
+  // Transform ray into grid space where 1 unit is 1 voxel
+  glm::vec3 gridOrigin = aRayOrigin / stepSize;
+  glm::vec3 rayDir = glm::normalize(aRayDirection);
+
+  // voxel were currently in
+  int cellX = (int)floor(gridOrigin.x);
+  int cellY = (int)floor(gridOrigin.y);
+  int cellZ = (int)floor(gridOrigin.z);
+
+  // if origin is outside of the chunk, we need
+  // to advance the ray to the entry point
+  if(cellX < 0 or cellX >= CHUNK_SIZE or
+     cellY < 0 or cellY >= CHUNK_SIZE or
+     cellZ < 0 or cellZ >= CHUNK_SIZE){
+    // Slab intersection against the chunk AABB in grid space
+    float tMin = 0.0f;
+    float tMax = FLT_MAX;
+
+    for(int axis=0; axis<3; axis++){
+      float invDir = 1.f / rayDir[axis];
+      float t0 = (0.f - gridOrigin[axis]) * invDir;
+      float t1 = ((float)CHUNK_SIZE - gridOrigin[axis]) * invDir;
+      if(invDir < 0.f) std::swap(t0, t1);
+      tMin = std::max(tMin, t0);
+      tMax = std::min(tMax, t1);
+    }
+
+    // ray missed chunk entirely
+    if(tMin > tMax) return glm::ivec3(-1);
+
+    // advance origin to entry point
+    gridOrigin = gridOrigin + rayDir * (tMin + 0.001f); 
+    cellX = (int)floor(gridOrigin.x);
+    cellY = (int)floor(gridOrigin.y);
+    cellZ = (int)floor(gridOrigin.z);
+
+    // clamp to handle floating point errors
+    cellX = glm::clamp(cellX, 0, CHUNK_SIZE - 1);
+    cellY = glm::clamp(cellY, 0, CHUNK_SIZE - 1);
+    cellZ = glm::clamp(cellZ, 0, CHUNK_SIZE - 1);
+  }
+
+
+  // Directions to step along in each axis
+  int stepDirX = (rayDir.x >= 0) ? 1 : -1;
+  int stepDirY = (rayDir.y >= 0) ? 1 : -1;
+  int stepDirZ = (rayDir.z >= 0) ? 1 : -1;
+
+  // the amount t is incremented for one unit step along an axis
+  float tPerXStep = fabs(1.f / rayDir.x);
+  float tPerYStep = fabs(1.f / rayDir.y);
+  float tPerZStep = fabs(1.f / rayDir.z);
+
+  // distance in t from ray origin to first cell boundary on each axis
+  float tMX = (stepDirX > 0 ? (cellX + 1 - gridOrigin.x) : (gridOrigin.x - cellX)) * tPerXStep;
+  float tMY = (stepDirY > 0 ? (cellY + 1 - gridOrigin.y) : (gridOrigin.y - cellY)) * tPerYStep;
+  float tMZ = (stepDirZ > 0 ? (cellZ + 1 - gridOrigin.z) : (gridOrigin.z - cellZ)) * tPerZStep;
+
+  int prevX = cellX, prevY = cellY, prevZ = cellZ;
+
+  for(int i=0; i<MAX_STEPS; i++){
+    // out of bounds
+    if(cellX < 0 or cellX >= CHUNK_SIZE or
+       cellY < 0 or cellY >= CHUNK_SIZE or
+       cellZ < 0 or cellZ >= CHUNK_SIZE) break;
+
+    if((aChunk.zyOccupancy[cellZ + cellY * CHUNK_SIZE] >> cellX) & 1)
+      return glm::ivec3(prevX, prevY, prevZ); // placement pos
+
+    prevX = cellX; prevY = cellY; prevZ = cellZ;
+
+    if(tMX < tMY and tMX < tMZ) { cellX += stepDirX; tMX += tPerXStep; }
+    else if (tMY < tMZ)         { cellY += stepDirY; tMY += tPerYStep; }
+    else                        {cellZ += stepDirZ; tMZ += tPerZStep; }
+  }
+  return glm::ivec3(-1); // miss
 }

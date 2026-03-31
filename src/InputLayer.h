@@ -3,6 +3,8 @@
 class CameraController;
 struct GFLWwindow;
 class Scene;
+struct Camera;
+class VoxelPainter;
 
 struct InputDebug {
   glm::dvec2 mousePos{};
@@ -17,6 +19,7 @@ public:
   void ControlCamera(GLFWwindow *aWindow, CameraController &aCamera);
   void UpdateInput(GLFWwindow *aWindow);
   void ControlScene(GLFWwindow* aWindow, Scene &aScene);
+  void ControlPainter(GLFWwindow* aWindow, Camera& aCamera, Scene& aScene, VoxelPainter& aPainter);
 
   InputDebug myDebug;
 

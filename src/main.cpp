@@ -36,6 +36,7 @@ int main() {
   EditorLayer::AddStatsEditor(myScene, physicsRuntime);
 
   VoxelPainter::SetCurrentChunk(&myScene.GetVoxelChunk());
+  VoxelPainter painter;
   Renderer::SetWireframeMode(true);
 
   float deltaTime = 0.f, lastTime = 0.f;
@@ -60,6 +61,8 @@ int main() {
     inputLayer.ControlCamera(window, myCameraController);
     myCameraController.MoveCamera(myCamera, deltaTime);
     inputLayer.ControlScene(window, myScene);
+
+    inputLayer.ControlPainter(window, myCamera, myScene, painter);
 
 
     // Begin frame
