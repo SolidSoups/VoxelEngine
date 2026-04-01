@@ -53,19 +53,30 @@ void InputLayer::ControlPainter(GLFWwindow* aWindow, Camera &aCamera, Scene& aSc
 
   static bool pressedLastFrame = false;
   
+  // get viewport mouse position
+  pressedLastFrame = true;
+  auto& io = EditorIO::Get();
+  glm::vec2 screenSize = io.ViewportSize;
+  ImVec2 imMousePos = ImGui::GetMousePos();
+  glm::vec2 mousePos{imMousePos.x, imMousePos.y};
+  glm::ivec2 realMousePos = (glm::ivec2)mousePos - io.ViewportMin;
+
+  // deproject screen mouse position to grid space position
+  glm::vec3 rayOrigin, rayDir;    
+  aCamera.DeprojectMouseToRay(realMousePos, screenSize, rayOrigin, rayDir);
+  glm::ivec3 position = VoxelPainter::DDARaycastGetPosition(rayOrigin, rayDir, aScene.GetVoxelChunk() );
+
+  // tell scene to display cursor
+  if(position.x > 0){
+    aScene.cursorPos = (glm::vec3)position * (4.0f / CHUNK_SIZE);
+    aScene.drawCursor = true;
+  }
+  else
+    aScene.drawCursor = false;
+
+  // if pressed, place a voxel down
   if(glfwGetMouseButton(aWindow, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS and !pressedLastFrame)
   {
-    pressedLastFrame = true;
-    auto& io = EditorIO::Get();
-    glm::vec2 screenSize = io.ViewportSize;
-    ImVec2 imMousePos = ImGui::GetMousePos();
-    glm::vec2 mousePos{imMousePos.x, imMousePos.y};
-    glm::ivec2 realMousePos = (glm::ivec2)mousePos - io.ViewportMin;
-
-    glm::vec3 rayOrigin, rayDir;    
-    aCamera.DeprojectMouseToRay(realMousePos, screenSize, rayOrigin, rayDir);
-    glm::ivec3 position = VoxelPainter::DDARaycastGetPosition(rayOrigin, rayDir, aScene.GetVoxelChunk() );
-
     if(position.x > 0){
       VoxelPainter::SetBrushColor(VoxelType_SAND);
       VoxelPainter::SetBrushType(BrushType_VOXEL);

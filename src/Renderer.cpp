@@ -12,6 +12,7 @@
 #include "objects/Renderpass.h"
 #include "objects/GeometryPass.h"
 #include "objects/LightingPass.h"
+#include "objects/PainterPass.h"
 
 #define DEFAULT_SCREEN_WIDTH 1000
 #define DEFAULT_SCREEN_HEIGHT 800
@@ -41,6 +42,7 @@ void Renderer::Initialize() {
   // initialize renderpasses
   myRenderpasses.push_back(std::make_unique<GeometryPass>());
   myRenderpasses.push_back(std::make_unique<LightingPass>());
+  myRenderpasses.push_back(std::make_unique<PainterPass>());
   for (auto &pass : myRenderpasses)
     pass->Initialize();
 
@@ -89,20 +91,31 @@ void Renderer::RenderFrame(Camera &aCamera, Scene &aScene, glm::ivec2 viewportSi
     return;
 
   FilledVertexMode vertexMode;
-  RenderpassInfo info{viewportSize, nullptr, aCamera, aScene, vertexMode};
+  RenderpassInfo info{
+    .viewportSize = viewportSize,
+    .framebuffers = {}, // initialize as zero, we will add to it in the loop
+    .currentFramebufferIdx = 0,
+    .camera = aCamera,
+    .scene = aScene,
+    .vertexMode = vertexMode
+  };
 
   size_t size = myRenderpasses.size();
   for (size_t i = 0; i < size; i++) {
     bool isLast = (i == size - 1);
     Framebuffer &target =
         isLast ? Renderer::framebuffer : myRenderpasses[i]->framebuffer;
+    info.framebuffers.push_back(&target);
+    info.currentFramebufferIdx = i;
+
+    if(!isLast)
+      target.Resize(viewportSize.x, viewportSize.y);
 
     target.Bind();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if(myRenderpasses[i]->ShouldClearColorBuffer())
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     myRenderpasses[i]->Execute(info);
     target.Unbind();
-    
-    info.previous = &target;
   }
 }
 

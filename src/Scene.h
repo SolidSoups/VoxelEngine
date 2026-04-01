@@ -31,8 +31,11 @@ public:
   inline MeshStats GetStats() const { return myChunkMesher.latestStats; }
 
   bool toggleWireframe = false;
+  bool drawCursor = false;
+  glm::vec3 cursorPos{0};
 private:
   ChunkMesher myChunkMesher;
   VoxelChunk myVoxelChunk;
   Mesh myChunkMesh;
+
 };

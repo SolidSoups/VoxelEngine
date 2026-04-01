@@ -8,6 +8,7 @@
 #include "objects/Mesh.h"
 #include "helpers/ChunkMesher.h"
 #include "objects/VoxelType.h"
+#include "objects/NaiveCube.h"
 #include "objects/VertexMode.h"
 
 Scene::Scene() {
