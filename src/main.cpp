@@ -62,7 +62,6 @@ int main() {
     myCameraController.MoveCamera(myCamera, deltaTime);
     inputLayer.ControlScene(window, myScene);
 
-    inputLayer.ControlPainter(window, myCamera, myScene, painter);
 
 
     // Begin frame
@@ -70,6 +69,9 @@ int main() {
     glm::ivec2 viewportSize = EditorLayer::GetViewportSize();
     myCamera.aspectRatio = (float)viewportSize.x / viewportSize.y;
     Renderer::BeginFrame(myCamera, viewportSize);
+
+    // painter needs fresh aspect ratio and viewport sizes
+    inputLayer.ControlPainter(window, myCamera, myScene, painter);
 
     // Render
     Renderer::RenderFrame(myCamera, myScene, viewportSize);

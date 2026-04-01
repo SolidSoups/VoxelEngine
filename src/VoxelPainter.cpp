@@ -90,6 +90,7 @@ glm::ivec3 VoxelPainter::DDARaycastGetPosition(const glm::vec3 &aRayOrigin, cons
 
   // Transform ray into grid space where 1 unit is 1 voxel
   glm::vec3 gridOrigin = aRayOrigin / stepSize;
+  gridOrigin += 0.5f; // offset to match centered voxel rendering
   glm::vec3 rayDir = glm::normalize(aRayDirection);
 
   // voxel were currently in
