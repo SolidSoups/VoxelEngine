@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "NaiveCube.h"
 #include <memory>
+#include "../VoxelPainter.h"
 
 void PainterPass::Initialize(){
   myShader = std::make_unique<Shader>(
@@ -31,7 +32,8 @@ void PainterPass::Execute(RenderpassInfo& someInfo){
   glBindFramebuffer(GL_READ_FRAMEBUFFER, geometryFB->fbo);
   glBlitFramebuffer(0, 0, w, h, 0, 0, w, h, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
-  if(!someInfo.scene.drawCursor)
+  auto& paintState = PainterState::Get();
+  if(!paintState.drawCursor)
     return;
 
   // rebind current framebuffer
@@ -53,7 +55,7 @@ void PainterPass::Execute(RenderpassInfo& someInfo){
   myShader->setMatrix4("uProjection", someInfo.camera.GetProjectionMatrix());
 
   // create transform matrix
-  glm::vec3& cursorPos = someInfo.scene.cursorPos;
+  glm::vec3& cursorPos = paintState.cursorPosition;
   glm::mat4 transform = glm::translate(glm::mat4(1), cursorPos);
   transform = glm::scale(transform, glm::vec3(4.0f / CHUNK_SIZE));
   myShader->setMatrix4("uTransform", transform);

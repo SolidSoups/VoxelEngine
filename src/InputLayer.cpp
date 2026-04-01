@@ -66,12 +66,13 @@ void InputLayer::ControlPainter(GLFWwindow* aWindow, Camera &aCamera, Scene& aSc
   glm::ivec3 position = VoxelPainter::DDARaycastGetPosition(rayOrigin, rayDir, aScene.GetVoxelChunk() );
 
   // tell scene to display cursor
+  auto& paintState = PainterState::Get();
   if(position.x > 0){
-    aScene.cursorPos = (glm::vec3)position * (4.0f / CHUNK_SIZE);
-    aScene.drawCursor = true;
+    paintState.cursorPosition = (glm::vec3)position * (4.0f / CHUNK_SIZE);
+    paintState.drawCursor = true;
   }
   else
-    aScene.drawCursor = false;
+    paintState.drawCursor = false;
 
   // if pressed, place a voxel down
   if(glfwGetMouseButton(aWindow, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS and !pressedLastFrame)

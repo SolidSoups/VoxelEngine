@@ -2,7 +2,6 @@
 
 #include <utility>
 #include <vector>
-#include <print>
 
 #include "../objects/VoxelChunk.h"
 #include "../objects/Mesh.h"
@@ -137,14 +136,18 @@ Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
     for (int fd = 0; fd < 6; fd++) {
       // ... build vertices and indices
       std::vector<GreedyMesh> &faceMeshes = greedyMeshes[fd];
-      BuildGreedyMeshBuffers(faceMeshes, (FaceDirection)fd, vertexOffset,
+      BuildGreedyMeshBuffersTyped(faceMeshes, (FaceDirection)fd, vertexOffset,
                              vertices, indices, voxelType);
     }
   }
   newStats.meshMemory = sizeof(float) * vertices.size() + sizeof(unsigned int) * indices.size();
 
   // return new mesh
-  Mesh newMesh{vertices, indices};
+  Mesh::VertexAttrib attribs[] = {
+    {.index=0,.size=3, .offset=0},
+    {.index=1, .size=1, .offset=sizeof(float)*3}
+  };
+  Mesh newMesh{vertices, indices, (int)sizeof(float)*4, attribs};
 
   // end sample
   newStats.sampleEnd = std::chrono::high_resolution_clock::now();
@@ -154,7 +157,91 @@ Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
   return newMesh;
 }
 
+
+Mesh ChunkMesher::CreateGreedyMesh_FromBitsets(VoxelBitset *xz, VoxelBitset* xy, VoxelBitset *zy){
+
+  SliceMask faces[6];
+
+  BuildFaceSlicesForAxis(zy, zy, faces[RIGHT], faces[LEFT]);
+  BuildFaceSlicesForAxis(xy, xy, faces[BACKWARD], faces[FORWARD]);
+  BuildFaceSlicesForAxis(xz, xz, faces[TOP], faces[BOTTOM]);
+
+  std::vector<GreedyMesh> greedyMeshes[6];
+  size_t totalQuads = 0;
+  for(int fd=0; fd<6; fd++){
+    BinaryGreedyMeshFaces(faces[fd], (FaceDirection)fd, greedyMeshes[fd]);
+    totalQuads += greedyMeshes[fd].size();
+  }
+
+  std::vector<float> vertices;
+  std::vector<unsigned int> indices;
+  size_t vertexOffset = 0;
+  vertices.resize(totalQuads * 12);
+  vertices.resize(totalQuads * 6);
+
+  for(int fd = 0; fd < 6; fd++){
+    BuildGreedyMeshBuffers(
+      greedyMeshes[fd], (FaceDirection)fd, vertexOffset, vertices, indices);
+  }
+
+  Mesh::VertexAttrib attribs[] = {{.index=0, .size=3, .offset=0}};
+  return Mesh{vertices, indices, (int)sizeof(float)*3, attribs};
+}
+
 void ChunkMesher::BuildGreedyMeshBuffers(
+  std::vector<GreedyMesh> &someGreedyMeshes,
+  FaceDirection aFaceDirection,
+  size_t& aVertexOffset,
+  std::vector<float> &outVertices,
+  std::vector<unsigned int> &outIndices
+){
+  auto &faceTemplateVerts = getFaceVertices(aFaceDirection);
+  for (size_t i = 0; i < someGreedyMeshes.size(); i++) {
+    auto &gMesh = someGreedyMeshes[i];
+
+    // compute scale and center point of rect
+    glm::vec3 scale = (gMesh.endPos - gMesh.startPos);
+    glm::vec3 center = (gMesh.startPos + gMesh.endPos) / 2.0f;
+
+    // Perpendicular axis has zero span, so it gets unit scale,
+    // while spanning axis get their center shifted by -0.5 to
+    // align with voxel grid edges
+    if (scale.x == 0)
+      scale.x = 1.f;
+    else
+      center.x -= 0.5f;
+    if (scale.y == 0)
+      scale.y = 1.f;
+    else
+      center.y -= 0.5f;
+    if (scale.z == 0)
+      scale.z = 1.f;
+    else
+      center.z -= 0.5f;
+
+    // insert template verticess offset and scaled
+    float *v = &outVertices[(aVertexOffset + i) * 12];
+    for (int j = 0; j < 4; j++) {
+      v[j * 3 + 0] = faceTemplateVerts[j * 3 + 0] * scale.x + center.x;
+      v[j * 3 + 1] = faceTemplateVerts[j * 3 + 1] * scale.y + center.y;
+      v[j * 3 + 2] = faceTemplateVerts[j * 3 + 2] * scale.z + center.z;
+    }
+
+    // insert quad indices
+    unsigned int *idx = &outIndices[(aVertexOffset + i) * 6];
+    unsigned int base = (aVertexOffset + i) * 4;
+    idx[0] = base + 0;
+    idx[1] = base + 3;
+    idx[2] = base + 1;
+    idx[3] = base + 0;
+    idx[4] = base + 2;
+    idx[5] = base + 3;
+  }
+  aVertexOffset += someGreedyMeshes.size();
+}
+
+
+void ChunkMesher::BuildGreedyMeshBuffersTyped(
     std::vector<GreedyMesh> &someGreedyMeshes, FaceDirection aFaceDirection,
     size_t &aVertexOffset, std::vector<float> &outVertices,
     std::vector<unsigned int> &outIndices, VoxelType aVoxelType) {

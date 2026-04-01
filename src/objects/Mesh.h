@@ -1,14 +1,23 @@
 #pragma once
 
+
 struct Mesh {
   unsigned int vao = 0;
   unsigned int vbo = 0;
   unsigned int ebo = 0;
 
+  struct VertexAttrib{
+    int index;
+    int size;
+    int offset;
+  };
+
 public:
   Mesh() = default;
   Mesh(const std::vector<float> &someVertices,
-       const std::vector<unsigned int> &someIndices);
+       const std::vector<unsigned int> &someIndices,
+       int aStride,
+       std::span<VertexAttrib> someAttributes);
   ~Mesh();
 
   // Delete copy
@@ -21,6 +30,7 @@ public:
 
 public:
   void Draw() const;
+
 
 private:
   size_t myElementsSize;

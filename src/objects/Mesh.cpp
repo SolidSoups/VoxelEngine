@@ -6,7 +6,9 @@
 
 // current format: v = [p.x, p.y, p.z];
 Mesh::Mesh(const std::vector<float> &someVertices,
-           const std::vector<unsigned int> &someIndices)
+           const std::vector<unsigned int> &someIndices,
+           int aStride,
+           std::span<VertexAttrib> someAttributes)
     : myElementsSize(someIndices.size()) {
   glGenVertexArrays(1, &vao);
   glBindVertexArray(vao);
@@ -24,13 +26,11 @@ Mesh::Mesh(const std::vector<float> &someVertices,
                someIndices.size() * sizeof(unsigned int), someIndices.data(),
                GL_STATIC_DRAW);
 
-  // define position attibute
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
-  glEnableVertexAttribArray(0);
-
-  // define type attribute
-  glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(3 * sizeof(float)));
-  glEnableVertexAttribArray(1);
+  for(const auto& attr : someAttributes){
+    glVertexAttribPointer(attr.index, attr.size, GL_FLOAT, GL_FALSE,
+                          aStride, (void*)(intptr_t)attr.offset);
+    glEnableVertexAttribArray(attr.index);
+  }
 }
 Mesh::~Mesh() {
   if (vao)

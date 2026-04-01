@@ -11,6 +11,11 @@ VoxelType VoxelPainter::myBrushColor = VoxelType_EMPTY;
 BrushType VoxelPainter::myBrushType = BrushType_VOXEL;
 VoxelChunk *VoxelPainter::myCurrentChunk = nullptr;
 
+PainterState& PainterState::Get(){
+  static PainterState state;
+  return state;
+}
+
 void VoxelPainter::SetBrushColor(VoxelType aVoxelType) {
   VoxelPainter::myBrushColor = aVoxelType;
 }
