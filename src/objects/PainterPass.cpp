@@ -36,7 +36,16 @@ void PainterPass::Execute(RenderpassInfo& someInfo){
 
   // rebind current framebuffer
   currentFB->Bind();
+
   glEnable(GL_DEPTH_TEST);
+
+  // enable blending for transparency
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  // push cursor slightly forward in depth, to avoid z-fighting with voxel geometry
+  glEnable(GL_POLYGON_OFFSET_FILL);
+  glPolygonOffset(-1.0f, -1.0f);
 
   // bind shader and set uniforms
   myShader->Bind();
@@ -50,6 +59,9 @@ void PainterPass::Execute(RenderpassInfo& someInfo){
   myShader->setMatrix4("uTransform", transform);
 
   myNaiveCube->Draw();
+
+  glDisable(GL_BLEND);
+  glDisable(GL_POLYGON_OFFSET_FILL);
 
   myShader->Unbind();
 }

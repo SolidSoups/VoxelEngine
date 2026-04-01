@@ -54,7 +54,6 @@ void InputLayer::ControlPainter(GLFWwindow* aWindow, Camera &aCamera, Scene& aSc
   static bool pressedLastFrame = false;
   
   // get viewport mouse position
-  pressedLastFrame = true;
   auto& io = EditorIO::Get();
   glm::vec2 screenSize = io.ViewportSize;
   ImVec2 imMousePos = ImGui::GetMousePos();
@@ -77,6 +76,7 @@ void InputLayer::ControlPainter(GLFWwindow* aWindow, Camera &aCamera, Scene& aSc
   // if pressed, place a voxel down
   if(glfwGetMouseButton(aWindow, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS and !pressedLastFrame)
   {
+    pressedLastFrame = true;
     if(position.x > 0){
       VoxelPainter::SetBrushColor(VoxelType_SAND);
       VoxelPainter::SetBrushType(BrushType_VOXEL);
