@@ -59,6 +59,8 @@ void BrushEditor::DrawVoxelType(){
   static int selectedTypeIdx = (int)mySelectedVoxelType;
   if(ImGuiHelpers::DrawCombo("Voxel Type", ourVoxelNames.data(), ourVoxelNames.size(), selectedTypeIdx)){
     mySelectedVoxelType = (VoxelType)selectedTypeIdx;
+    auto& painterState = PainterState::Get();
+    painterState.color = (VoxelType)selectedTypeIdx;
   }
 }
 void BrushEditor::DrawBrushType(){

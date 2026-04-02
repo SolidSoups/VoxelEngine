@@ -35,6 +35,13 @@ struct MeshStats {
 };
 
 class ChunkMesher {
+public:
+  ChunkMesher(){
+    for(int i=0; i<6; i++){
+      myGreedyMeshes[i].reserve(CHUNK_SIZE * CHUNK_SIZE);
+    }
+  }
+
 public: // Culled meshing
   Mesh CreateMesh_Culled(const VoxelChunk &aChunk);
 private:
@@ -67,4 +74,9 @@ private:
 
 public:
   MeshStats latestStats;
+
+private:
+  std::vector<GreedyMesh> myGreedyMeshes[6];
+  std::vector<float> myVertices;
+  std::vector<unsigned int> myIndices;
 };
