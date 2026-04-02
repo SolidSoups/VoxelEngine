@@ -158,7 +158,8 @@ Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
 }
 
 
-Mesh ChunkMesher::CreateGreedyMesh_FromBitsets(VoxelBitset *xz, VoxelBitset* xy, VoxelBitset *zy, const glm::vec3& aCenter){
+Mesh ChunkMesher::CreateGreedyMesh_FromBitsets(VoxelBitset *xz, VoxelBitset* xy, VoxelBitset *zy){
+
   SliceMask faces[6];
 
   BuildFaceSlicesForAxis(zy, zy, faces[RIGHT], faces[LEFT]);
@@ -176,11 +177,11 @@ Mesh ChunkMesher::CreateGreedyMesh_FromBitsets(VoxelBitset *xz, VoxelBitset* xy,
   std::vector<unsigned int> indices;
   size_t vertexOffset = 0;
   vertices.resize(totalQuads * 12);
-  indices.resize(totalQuads * 6);
+  vertices.resize(totalQuads * 6);
 
   for(int fd = 0; fd < 6; fd++){
     BuildGreedyMeshBuffers(
-      greedyMeshes[fd], (FaceDirection)fd, vertexOffset, aCenter, vertices, indices);
+      greedyMeshes[fd], (FaceDirection)fd, vertexOffset, vertices, indices);
   }
 
   Mesh::VertexAttrib attribs[] = {{.index=0, .size=3, .offset=0}};
@@ -188,10 +189,9 @@ Mesh ChunkMesher::CreateGreedyMesh_FromBitsets(VoxelBitset *xz, VoxelBitset* xy,
 }
 
 void ChunkMesher::BuildGreedyMeshBuffers(
-  const std::vector<GreedyMesh> &someGreedyMeshes,
+  std::vector<GreedyMesh> &someGreedyMeshes,
   FaceDirection aFaceDirection,
   size_t& aVertexOffset,
-  const glm::vec3& aCenter,
   std::vector<float> &outVertices,
   std::vector<unsigned int> &outIndices
 ){
@@ -222,9 +222,9 @@ void ChunkMesher::BuildGreedyMeshBuffers(
     // insert template verticess offset and scaled
     float *v = &outVertices[(aVertexOffset + i) * 12];
     for (int j = 0; j < 4; j++) {
-      v[j * 3 + 0] = faceTemplateVerts[j * 3 + 0] * scale.x + center.x - aCenter.x;
-      v[j * 3 + 1] = faceTemplateVerts[j * 3 + 1] * scale.y + center.y - aCenter.y;
-      v[j * 3 + 2] = faceTemplateVerts[j * 3 + 2] * scale.z + center.z - aCenter.z;
+      v[j * 3 + 0] = faceTemplateVerts[j * 3 + 0] * scale.x + center.x;
+      v[j * 3 + 1] = faceTemplateVerts[j * 3 + 1] * scale.y + center.y;
+      v[j * 3 + 2] = faceTemplateVerts[j * 3 + 2] * scale.z + center.z;
     }
 
     // insert quad indices

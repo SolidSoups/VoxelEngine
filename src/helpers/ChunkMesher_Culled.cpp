@@ -126,5 +126,6 @@ Mesh ChunkMesher::BuildMeshFromChunkFaces(const ChunkFaces &someChunkFaces) {
   IterateFaces(someChunkFaces.backs, ourBackVerts, vertices, indices,
                currentIdx);
 
-  return Mesh{vertices, indices};
+  Mesh::VertexAttrib attribs[] = {{.index=0, .size=3, .offset=0}};
+  return Mesh{vertices, indices, (int)sizeof(float)*3, attribs};
 }

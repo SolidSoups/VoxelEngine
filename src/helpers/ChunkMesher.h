@@ -43,7 +43,7 @@ private:
 
 public: // Binary Greedy Meshing
   Mesh CreateMesh_Greedy(const VoxelChunk &aChunk);
-  Mesh CreateGreedyMesh_FromBitsets(VoxelBitset *xz, VoxelBitset* xy, VoxelBitset *zy);
+  Mesh CreateGreedyMesh_FromBitsets(VoxelBitset *xz, VoxelBitset* xy, VoxelBitset *zy, const glm::vec3& aCenter);
 private:
   void BinaryGreedyMeshFaces(SliceMask &someFaces, FaceDirection aFaceDirection, std::vector<GreedyMesh> &outGreedyMeshes);
   void BuildFaceSlicesForAxis(VoxelBitset *someCells, VoxelBitset *occupancy, SliceMask &outPositive,
@@ -57,9 +57,10 @@ private:
     VoxelType aVoxelType
   );
   void BuildGreedyMeshBuffers(
-    std::vector<GreedyMesh> &someGreedyMeshes,
+    const std::vector<GreedyMesh> &someGreedyMeshes,
     FaceDirection aFaceDirection,
     size_t& aVertexOffset,
+    const glm::vec3& center,
     std::vector<float> &outVertices,
     std::vector<unsigned int> &outIndices
   );

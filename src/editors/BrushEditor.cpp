@@ -66,6 +66,8 @@ void BrushEditor::DrawBrushType(){
   static int selectedBrushIdx = (int)myBrushType;
   if(ImGuiHelpers::DrawCombo("Brush Type", brushTypes, IM_ARRAYSIZE(brushTypes), selectedBrushIdx)){
     myBrushType = (BrushType)selectedBrushIdx;
+    auto& pState = PainterState::Get();
+    pState.brush = (BrushType)selectedBrushIdx;
   }
 }
 

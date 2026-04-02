@@ -4,6 +4,7 @@
 class EditorIO{
 public:
   static EditorIO& Get();
+  static glm::ivec2 GetViewportMousePosition();
 
 public:
   bool ViewportIsHovered = false;

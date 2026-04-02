@@ -48,8 +48,9 @@ bool VoxelBrushes::PrecomputeSphere(int aRadius) {
     }
   }
 
+  glm::vec3 center(aRadius );
   ChunkMesher mesher;
-  Mesh newMesh = mesher.CreateGreedyMesh_FromBitsets(xzBitset, xyBitset, zyBitset);
+  Mesh newMesh = mesher.CreateGreedyMesh_FromBitsets(xzBitset, xyBitset, zyBitset, center);
   mySphereCache[aRadius] = std::make_shared<Mesh>(std::move(newMesh));
   return true;
 }

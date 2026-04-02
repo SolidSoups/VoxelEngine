@@ -4,6 +4,7 @@
 
 
 #include "Renderpass.h"
+#include "VoxelBrushes.h"
 
 class Shader;
 class NaiveCube;
@@ -17,4 +18,5 @@ class PainterPass : public Renderpass {
 private:
   std::unique_ptr<Shader> myShader;
   std::unique_ptr<NaiveCube> myNaiveCube;
+  VoxelBrushes brushes;
 };

@@ -13,6 +13,10 @@ void PainterPass::Initialize(){
     "shaders/painter.frag"
   );
   myNaiveCube = std::make_unique<NaiveCube>();
+  brushes.PrecomputeSphere(1);
+  brushes.PrecomputeSphere(2);
+  brushes.PrecomputeSphere(3);
+  brushes.PrecomputeSphere(4);
 }
 void PainterPass::Execute(RenderpassInfo& someInfo){
 
@@ -35,6 +39,8 @@ void PainterPass::Execute(RenderpassInfo& someInfo){
   auto& paintState = PainterState::Get();
   if(!paintState.drawCursor)
     return;
+
+  auto sphereMesh = brushes.GetSphere(3);
 
   // rebind current framebuffer
   currentFB->Bind();
@@ -60,7 +66,9 @@ void PainterPass::Execute(RenderpassInfo& someInfo){
   transform = glm::scale(transform, glm::vec3(4.0f / CHUNK_SIZE));
   myShader->setMatrix4("uTransform", transform);
 
-  myNaiveCube->Draw();
+  // myNaiveCube->Draw();
+  sphereMesh->Draw();
+  
 
   glDisable(GL_BLEND);
   glDisable(GL_POLYGON_OFFSET_FILL);
