@@ -3,7 +3,7 @@
 #include <utility>
 #include <vector>
 
-#include "voxel/VoxelChunk.h"
+#include "voxel/VoxelChunkViews.h"
 #include "rendering/Mesh.h"
 #include "rendering/CubeFaces.h"
 
@@ -80,7 +80,7 @@ std::string getTypeStr(size_t aType) {
   return "Unknown";
 }
 
-Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
+Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunkViews &someChunkViews) {
   // start sample
   MeshStats newStats;
   newStats.sampleStart = std::chrono::high_resolution_clock::now();
@@ -95,19 +95,19 @@ Mesh ChunkMesher::CreateMesh_Greedy(const VoxelChunk &aChunk) {
   for (int t = 0; t < VOXEL_TYPES; t++) {
 
     // Get isolated axis views of the type
-    VoxelBitset *zy = aChunk.zyIsolatedVoxels + t * CHUNK_SIZE * CHUNK_SIZE;
-    VoxelBitset *xy = aChunk.xyIsolatedVoxels + t * CHUNK_SIZE * CHUNK_SIZE;
-    VoxelBitset *xz = aChunk.xzIsolatedVoxels + t * CHUNK_SIZE * CHUNK_SIZE;
+    VoxelBitset *zy = someChunkViews.zyIsolatedVoxels + t * CHUNK_SIZE * CHUNK_SIZE;
+    VoxelBitset *xy = someChunkViews.xyIsolatedVoxels + t * CHUNK_SIZE * CHUNK_SIZE;
+    VoxelBitset *xz = someChunkViews.xzIsolatedVoxels + t * CHUNK_SIZE * CHUNK_SIZE;
 
     // Store planar slices of every directional face
     // A slice is perpendicular to its direction
     SliceMask faces[6];
 
     // Build face slices for every axis
-    BuildFaceSlicesForAxis(zy, aChunk.zyOccupancy, faces[RIGHT], faces[LEFT]);
-    BuildFaceSlicesForAxis(xy, aChunk.xyOccupancy, faces[BACKWARD],
+    BuildFaceSlicesForAxis(zy, someChunkViews.zyOccupancy, faces[RIGHT], faces[LEFT]);
+    BuildFaceSlicesForAxis(xy, someChunkViews.xyOccupancy, faces[BACKWARD],
                            faces[FORWARD]);
-    BuildFaceSlicesForAxis(xz, aChunk.xzOccupancy, faces[TOP], faces[BOTTOM]);
+    BuildFaceSlicesForAxis(xz, someChunkViews.xzOccupancy, faces[TOP], faces[BOTTOM]);
 
     size_t greedyMeshCount = 0;
     // for every face direction...

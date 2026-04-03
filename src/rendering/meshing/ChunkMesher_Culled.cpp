@@ -1,18 +1,19 @@
 #include "rendering/meshing/ChunkMesher.h"
 
-#include "voxel/VoxelChunk.h"
+#include <print>
+
+#include "voxel/VoxelChunkViews.h"
 #include "rendering/Mesh.h"
 #include "rendering/CubeFaces.h"
 
 
-Mesh ChunkMesher::CreateMesh_Culled(const VoxelChunk &aChunk) {
-  std::println("Voxel count: {0}", aChunk.CountNonEmptyVoxels());
+Mesh ChunkMesher::CreateMesh_Culled(const VoxelChunkViews &aChunkView) {
   ChunkFaces faces;
-  CullChunkFaces(aChunk, faces);
+  CullChunkFaces(aChunkView, faces);
   return BuildMeshFromChunkFaces(faces);
 }
 
-void ChunkMesher::CullChunkFaces(const VoxelChunk &aChunk,
+void ChunkMesher::CullChunkFaces(const VoxelChunkViews &aChunkView,
                                  ChunkFaces &outFaces) {
 
   const size_t size = CHUNK_SIZE * CHUNK_SIZE;
@@ -21,7 +22,7 @@ void ChunkMesher::CullChunkFaces(const VoxelChunk &aChunk,
   for (size_t i = 0; i < size; i++) {
     int z = i % CHUNK_SIZE;
     int y = i / CHUNK_SIZE;
-    VoxelBitset bitset = aChunk.zyOccupancy[i];
+    VoxelBitset bitset = aChunkView.zyOccupancy[i];
 
     VoxelBitset pos = bitset & ~(bitset >> 1);
     while (pos) {
@@ -41,7 +42,7 @@ void ChunkMesher::CullChunkFaces(const VoxelChunk &aChunk,
   for (size_t i = 0; i < size; i++) {
     int x = i % CHUNK_SIZE;
     int y = i / CHUNK_SIZE;
-    VoxelBitset bitset = aChunk.xyOccupancy[i];
+    VoxelBitset bitset = aChunkView.xyOccupancy[i];
 
     VoxelBitset pos = bitset & ~(bitset >> 1);
     while (pos) {
@@ -63,7 +64,7 @@ void ChunkMesher::CullChunkFaces(const VoxelChunk &aChunk,
   for (size_t i = 0; i < size; i++) {
     int x = i % CHUNK_SIZE;
     int z = i / CHUNK_SIZE;
-    VoxelBitset bitset = aChunk.xzOccupancy[i];
+    VoxelBitset bitset = aChunkView.xzOccupancy[i];
 
     VoxelBitset pos = bitset & ~(bitset >> 1);
     while (pos) {

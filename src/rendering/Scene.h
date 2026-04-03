@@ -2,6 +2,7 @@
 
 #include "rendering/meshing/ChunkMesher.h"
 #include "voxel/VoxelChunk.h"
+#include "voxel/VoxelChunkViews.h"
 #include "rendering/Mesh.h"
 struct Camera;
 
@@ -27,13 +28,15 @@ public:
   void Render();
   void Update();
   inline VoxelChunk& GetVoxelChunk() { return myVoxelChunk; }
+  inline const VoxelChunkViews& GetChunkViews() const {return myChunkViews; }
   inline Mesh& GetVoxelMesh() { return myChunkMesh; }
   inline MeshStats GetStats() const { return myChunkMesher.latestStats; }
 
   bool toggleWireframe = false;
 private:
   ChunkMesher myChunkMesher;
-  VoxelChunk myVoxelChunk;
+  VoxelChunk myVoxelChunk{CHUNK_SIZE};
+  VoxelChunkViews myChunkViews;
   Mesh myChunkMesh;
 
 };

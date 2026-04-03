@@ -34,6 +34,7 @@ struct MeshStats {
   }
 };
 
+struct VoxelChunkViews;
 class ChunkMesher {
 public:
   ChunkMesher(){
@@ -43,13 +44,13 @@ public:
   }
 
 public: // Culled meshing
-  Mesh CreateMesh_Culled(const VoxelChunk &aChunk);
+  Mesh CreateMesh_Culled(const VoxelChunkViews &aChunk);
 private:
-  void CullChunkFaces(const VoxelChunk &aChunk, ChunkFaces &outFaces);
+  void CullChunkFaces(const VoxelChunkViews &aChunk, ChunkFaces &outFaces);
   Mesh BuildMeshFromChunkFaces(const ChunkFaces &someChunkFaces);
 
 public: // Binary Greedy Meshing
-  Mesh CreateMesh_Greedy(const VoxelChunk &aChunk);
+  Mesh CreateMesh_Greedy(const VoxelChunkViews &aChunk);
   Mesh CreateGreedyMesh_FromBitsets(VoxelBitset *xz, VoxelBitset* xy, VoxelBitset *zy, const glm::vec3& aCenter);
 private:
   void BinaryGreedyMeshFaces(SliceMask &someFaces, FaceDirection aFaceDirection, std::vector<GreedyMesh> &outGreedyMeshes);

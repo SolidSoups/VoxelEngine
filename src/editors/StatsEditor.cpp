@@ -181,14 +181,14 @@ void StatsEditor::CollectStats() {
     firstFrame = false;
 
   auto latestStats = myScene.GetStats();
-  auto &chunk = myScene.GetVoxelChunk();
+  auto &views = myScene.GetChunkViews();
   size_t currentIndex = myFrameCount % 1000;
   myStoneTriCounts[currentIndex] = latestStats.stoneFaceCount;
   mySandTriCounts[currentIndex] = latestStats.sandFaceCount;
   myWaterTriCounts[currentIndex] = latestStats.waterFaceCount;
-  myStoneVoxelCounts[currentIndex] = chunk.CountVoxelType(VoxelType_STONE);
-  mySandVoxelCounts[currentIndex] = chunk.CountVoxelType(VoxelType_SAND);
-  myWaterVoxelCounts[currentIndex] = chunk.CountVoxelType(VoxelType_WATER);
+  myStoneVoxelCounts[currentIndex] = views.CountVoxelType(VoxelType_STONE);
+  mySandVoxelCounts[currentIndex] = views.CountVoxelType(VoxelType_SAND);
+  myWaterVoxelCounts[currentIndex] = views.CountVoxelType(VoxelType_WATER);
   myMemoryCounts[currentIndex] = latestStats.meshMemory;
   meshTimings[currentIndex] = latestStats.getMsTiming();
   myTimepoints[currentIndex] = myFrameCount;

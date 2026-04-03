@@ -16,13 +16,12 @@ Scene::Scene() {
   VoxelPainter::PaintRect(glm::ivec3(0), glm::ivec3(CHUNK_SIZE-1, 10, CHUNK_SIZE-1), myVoxelChunk);
   VoxelPainter::SetBrushColor(VoxelType_SAND);
   VoxelPainter::PaintSphere(glm::ivec3(32), 10, myVoxelChunk);
-
-  std::println("VoxelCount: {0}", myVoxelChunk.CountNonEmptyVoxels());
 }
 
 void Scene::Update(){
   if(myVoxelChunk.isDirty){
-    myChunkMesh = myChunkMesher.CreateMesh_Greedy(myVoxelChunk);
+    myChunkViews.BuildFrom(myVoxelChunk);
+    myChunkMesh = myChunkMesher.CreateMesh_Greedy(myChunkViews);
     myVoxelChunk.isDirty = false;
   }
 }

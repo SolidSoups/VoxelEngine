@@ -11,7 +11,7 @@ PhysicsEngine::PhysicsEngine(Scene &aScene) : myScene(aScene) {
 
 void PhysicsEngine::SimulateChunk() {
   VoxelChunk &chunk = myScene.GetVoxelChunk();
-  const VoxelIndex chunkSize = chunk.GetSize();
+  const VoxelIndex chunkSize = chunk.GetWidth();
 
   // We swap which direction on x-z plane we iterate
   // every frame
@@ -31,28 +31,32 @@ void PhysicsEngine::SimulateChunk() {
         // iterate every voxel in this vertical chunk slice...
         VoxelIndex x = reverseX ? (chunkSize - 1 - xx) : xx;
         VoxelIndex index = x + y * chunkSize + z * chunkSize * chunkSize;
-        Voxel &voxel = chunk.GetVoxel(index);
+        Voxel &voxel = chunk[index];
+
         // skip all empty voxels
         if (voxel == VoxelType_EMPTY)
           continue;
-        if((xyMovedVoxels[x + y * CHUNK_SIZE] & (VoxelBitset(1) << z)) != VoxelBitset(0))
+        if ((xyMovedVoxels[x + y * CHUNK_SIZE] & (VoxelBitset(1) << z)) !=
+            VoxelBitset(0))
           continue;
 
         // Create context to share to sub-functions
-        VoxelContext ctx{chunk.xyzVoxels, (VoxelType)voxel, index, getVoxelGridPosition(index),
-                         chunkSize, chunk, xyMovedVoxels};
+        VoxelContext ctx{chunk.xyzVoxels, (VoxelType)voxel,
+                         index,           getVoxelGridPosition(index),
+                         chunkSize,       chunk,
+                         xyMovedVoxels};
 
         // Simulate voxels
         switch (voxel) {
         case (VoxelType_SAND):
-          if (SimulateSand(ctx)){
-              somethingMoved = true;
-            }
+          if (SimulateSand(ctx)) {
+            somethingMoved = true;
+          }
           break;
         case (VoxelType_WATER):
-          if (SimulateWater(ctx)){
-              somethingMoved = true;
-            }
+          if (SimulateWater(ctx)) {
+            somethingMoved = true;
+          }
         }
       }
     }
@@ -74,9 +78,9 @@ bool PhysicsEngine::SimulateSand(const VoxelContext &ctx) {
 }
 
 bool PhysicsEngine::SimulateWater(const VoxelContext &ctx) {
-  if(MoveVoxelStraightDown(ctx))
-    return true; 
-  if(MoveVoxelDiagonallyDown(ctx))
+  if (MoveVoxelStraightDown(ctx))
+    return true;
+  if (MoveVoxelDiagonallyDown(ctx))
     return true;
 
   return MoveVoxelHorizontally(ctx);
@@ -98,12 +102,14 @@ bool PhysicsEngine::MoveSandDownOnWater(const VoxelContext &ctx) {
   // }
 
   // ctx.voxelChunk.SwapVoxels(ctx.index, indexUnder);
-  ctx.voxelChunk.SetVoxel(ctx.index, VoxelType_WATER);
-  ctx.voxelChunk.SetVoxel(indexUnder, VoxelType_SAND);
+  ctx.voxelChunk[ctx.index] = VoxelType_WATER;
+  ctx.voxelChunk[indexUnder] = VoxelType_SAND;
 
   glm::ivec3 sandDest = getVoxelGridPosition(indexUnder);
-  ctx.xyMovedVoxels[sandDest.x + sandDest.y * CHUNK_SIZE] |= (VoxelBitset(1) << sandDest.z);
-  ctx.xyMovedVoxels[ctx.gridPos.x + ctx.gridPos.y * CHUNK_SIZE] |= (VoxelBitset(1) << ctx.gridPos.z);
+  ctx.xyMovedVoxels[sandDest.x + sandDest.y * CHUNK_SIZE] |=
+      (VoxelBitset(1) << sandDest.z);
+  ctx.xyMovedVoxels[ctx.gridPos.x + ctx.gridPos.y * CHUNK_SIZE] |=
+      (VoxelBitset(1) << ctx.gridPos.z);
   return true;
 }
 
@@ -121,7 +127,7 @@ bool PhysicsEngine::MoveVoxelStraightDown(const VoxelContext &ctx) {
     return false;
 
   // swap this voxel with the one under
-  ctx.voxelChunk.SwapVoxels(indexUnder, ctx.index);
+  std::swap(ctx.voxelChunk[indexUnder], ctx.voxelChunk[ctx.index]);
 
   // mark destination as moved
   glm::ivec3 dest = getVoxelGridPosition(indexUnder);
@@ -138,7 +144,7 @@ bool PhysicsEngine::MoveVoxelDiagonallyDown(const VoxelContext &ctx) {
   if (!GetRandDiagonalNeighbour(ctx, chosen))
     return false;
 
-  ctx.voxelChunk.SwapVoxels(chosen, ctx.index);
+  std::swap(ctx.voxelChunk[chosen], ctx.voxelChunk[ctx.index]);
 
   // mark destination as moved
   glm::ivec3 dest = getVoxelGridPosition(chosen);
@@ -148,8 +154,8 @@ bool PhysicsEngine::MoveVoxelDiagonallyDown(const VoxelContext &ctx) {
 
 bool PhysicsEngine::MoveVoxelHorizontally(const VoxelContext &ctx) {
   // Add more spread if above is water ???
-  bool aboveIsWater = ctx.gridPos.y < ctx.chunkSize -1 &&
-    ctx.voxels[ctx.index + ctx.chunkSize] == VoxelType_WATER;
+  bool aboveIsWater = ctx.gridPos.y < ctx.chunkSize - 1 &&
+                      ctx.voxels[ctx.index + ctx.chunkSize] == VoxelType_WATER;
   bool weAreWater = ctx.type == VoxelType_WATER;
   int spreadChance = aboveIsWater and weAreWater ? 1 : 3;
   if (rand() % spreadChance != 0)
@@ -161,10 +167,10 @@ bool PhysicsEngine::MoveVoxelHorizontally(const VoxelContext &ctx) {
     return false;
 
   VoxelIndex chosen;
-  if (!GetRandHorizontalNeighbour(ctx, chosen)){
+  if (!GetRandHorizontalNeighbour(ctx, chosen)) {
     return false;
   }
-  ctx.voxelChunk.SwapVoxels(ctx.index, chosen);
+  std::swap(ctx.voxelChunk[ctx.index], ctx.voxelChunk[chosen]);
 
   // mark destination as moved
   glm::ivec3 dest = getVoxelGridPosition(chosen);
@@ -245,4 +251,3 @@ bool PhysicsEngine::GetRandHorizontalNeighbour(const VoxelContext &ctx,
   outIndex = candidates[rand() % count];
   return true;
 }
-

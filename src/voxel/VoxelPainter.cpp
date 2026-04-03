@@ -6,6 +6,7 @@
 
 #include "voxel/VoxelChunk.h"
 #include "physics/AABB.h"
+#include "voxel/VoxelType.h"
 
 VoxelType VoxelPainter::myBrushColor = VoxelType_EMPTY;
 BrushType VoxelPainter::myBrushType = BrushType_VOXEL;
@@ -52,22 +53,15 @@ void VoxelPainter::EditorPaint(const glm::ivec3 &aGridPosA,
 void VoxelPainter::PaintSphere(const glm::ivec3 &aGridCoordinate, int aRadius,
                                VoxelChunk &aChunk) {
   glm::vec3 gridPosition{aGridCoordinate};
+  size_t width = aChunk.GetWidth();
+  size_t total = width * width * width;
 
-  // query for voxels in the area
-  std::vector<VoxelIndex> result;
-  aChunk.QueryVoxels(
-      [gridPosition, aRadius](VoxelIndex i, Voxel v) {
-        glm::vec3 voxelPos{getVoxelGridPosition(i)};
-        if (glm::length(voxelPos - gridPosition) <= aRadius) {
-          return true;
-        }
-        return false;
-      },
-      result);
-
-  // set those voxels
-  for (VoxelIndex &i : result) {
-    aChunk.SetVoxel(i, VoxelPainter::myBrushColor);
+  // set sphere voxels
+  for(size_t i=0; i<total; i++){
+    glm::vec3 voxelPos{getVoxelGridPosition(i)};
+    if(glm::length(voxelPos - gridPosition) <= aRadius){
+      aChunk[i] = VoxelPainter::myBrushColor;
+    }
   }
 
   aChunk.isDirty = true;
@@ -80,13 +74,13 @@ void VoxelPainter::PaintRect(const glm::ivec3 &aGridPosA,
   for (int x = aabb.min.x; x <= aabb.max.x; x++)
     for (int y = aabb.min.y; y <= aabb.max.y; y++)
       for (int z = aabb.min.z; z <= aabb.max.z; z++) {
-        aChunk.SetVoxel({x, y, z}, VoxelPainter::myBrushColor);
+        aChunk[x, y, z] = VoxelPainter::myBrushColor;
       }
   aChunk.isDirty = true;
 }
 
 void VoxelPainter::PaintVoxel(const glm::ivec3 &aGridPos, VoxelChunk &aChunk) {
-  aChunk.SetVoxel(aGridPos, VoxelPainter::myBrushColor);
+  aChunk[aGridPos.x, aGridPos.y, aGridPos.z] = VoxelPainter::myBrushColor;
   aChunk.isDirty = true;
 }
 glm::ivec3 VoxelPainter::DDARaycastGetPosition(const glm::vec3 &aRayOrigin, const glm::vec3& aRayDirection, const VoxelChunk& aChunk){
@@ -160,7 +154,7 @@ glm::ivec3 VoxelPainter::DDARaycastGetPosition(const glm::vec3 &aRayOrigin, cons
        cellY < 0 or cellY >= CHUNK_SIZE or
        cellZ < 0 or cellZ >= CHUNK_SIZE) break;
 
-    if((aChunk.zyOccupancy[cellZ + cellY * CHUNK_SIZE] >> cellX) & 1)
+    if(aChunk[cellX, cellY, cellZ] != VoxelType_EMPTY)
       return glm::ivec3(prevX, prevY, prevZ); // placement pos
 
     prevX = cellX; prevY = cellY; prevZ = cellZ;
