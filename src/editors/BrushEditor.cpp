@@ -34,7 +34,10 @@ void BrushEditor::Draw() {
     ImGui::AlignTextToFramePadding();
     ImGui::Text("Radius");
     ImGui::SameLine();
-    ImGui::DragInt("##Radius", &radius, 1, 0);
+    if(ImGui::DragInt("##Radius", &radius, 1, 0, CHUNK_SIZE / 2 - 1)){
+      auto& painterState = PainterState::Get();
+      painterState.radius = radius;
+    }
   }
 
   ImGui::Dummy(ImVec2(0, 5));

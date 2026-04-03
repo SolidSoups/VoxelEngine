@@ -40,7 +40,7 @@ void PainterPass::Execute(RenderpassInfo& someInfo){
   if(!paintState.drawCursor)
     return;
 
-  auto sphereMesh = brushes.GetSphere(3);
+  auto sphereMesh = brushes.GetSphere(paintState.radius);
 
   // rebind current framebuffer
   currentFB->Bind();
