@@ -1,9 +1,9 @@
-#include "ViewportEditor.h"
+#include "editors/ViewportEditor.h"
 #include <imgui.h>
-#include "../Renderer.h"
-#include "../objects/Framebuffer.h"
-#include "../ApplicationLayer.h"
-#include "EditorIO.h"
+#include "rendering/Renderer.h"
+#include "rendering/Framebuffer.h"
+#include "app/ApplicationLayer.h"
+#include "editors/EditorIO.h"
 
 void ViewportEditor::Draw() {
   ImGui::Begin("Viewport", nullptr); 

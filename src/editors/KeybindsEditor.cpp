@@ -1,4 +1,4 @@
-#include "KeybindsEditor.h"
+#include "editors/KeybindsEditor.h"
 
 #include <imgui.h>
 

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../objects/VoxelType.h"
-#include "../objects/PaintType.h"
+#include "voxel/VoxelType.h"
+#include "voxel/PaintType.h"
 
 class BrushEditor{
 public:

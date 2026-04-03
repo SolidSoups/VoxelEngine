@@ -1,4 +1,4 @@
-#include "PhysicsEditor.h"
+#include "editors/PhysicsEditor.h"
 
 #include <string>
 #include <cstdio>
@@ -6,8 +6,8 @@
 #include <imgui.h>
 #include <glm/glm.hpp>
 
-#include "../objects/Texture.h"
-#include "../PhysicsRuntime.h"
+#include "rendering/Texture.h"
+#include "physics/PhysicsRuntime.h"
 
 #define PLAY_TEX_PATH "./res/play.png"
 #define PAUSE_TEX_PATH "./res/pause.png"

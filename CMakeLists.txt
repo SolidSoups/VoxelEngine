@@ -90,6 +90,7 @@ PUBLIC
 add_executable(voxel_engine)
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.cpp" "src/*.h")
 target_sources(voxel_engine PRIVATE ${SOURCES})
+target_include_directories(voxel_engine PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_link_libraries(voxel_engine
   PRIVATE
     glad

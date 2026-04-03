@@ -1,11 +1,11 @@
-#include "BrushEditor.h"
+#include "editors/BrushEditor.h"
 
 #include <print>
 
 #include <glm/glm.hpp>
 #include <imgui.h>
-#include "ImGuiHelpers.h"
-#include "../VoxelPainter.h"
+#include "editors/ImGuiHelpers.h"
+#include "voxel/VoxelPainter.h"
 
 void BrushEditor::Draw() {
   ImGui::Begin("Voxel Painter");

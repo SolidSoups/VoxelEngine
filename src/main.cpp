@@ -1,14 +1,14 @@
 #include <imgui.h>
-#include "ApplicationLayer.h"
-#include "EditorLayer.h"
-#include "Renderer.h"
-#include "Scene.h"
-#include "InputLayer.h"
-#include "PhysicsRuntime.h"
-#include "CameraController.h"
-#include "VoxelPainter.h"
-#include "objects/Camera.h"
-#include "objects/Framebuffer.h"
+#include "app/ApplicationLayer.h"
+#include "app/EditorLayer.h"
+#include "rendering/Renderer.h"
+#include "rendering/Scene.h"
+#include "app/InputLayer.h"
+#include "physics/PhysicsRuntime.h"
+#include "rendering/CameraController.h"
+#include "voxel/VoxelPainter.h"
+#include "rendering/Camera.h"
+#include "rendering/Framebuffer.h"
 
 #define WINDOW_WIDTH 1920
 #define WINDOW_HEIGHT 1080

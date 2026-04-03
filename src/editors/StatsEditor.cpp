@@ -1,12 +1,12 @@
-#include "StatsEditor.h"
+#include "editors/StatsEditor.h"
 
 #include <algorithm>
 #include <imgui.h>
 #include <implot.h>
 
-#include "../objects/VoxelType.h"
-#include "../Scene.h"
-#include "../PhysicsRuntime.h"
+#include "voxel/VoxelType.h"
+#include "rendering/Scene.h"
+#include "physics/PhysicsRuntime.h"
 
 // function exists, but only in the internal translation unit
 // forward declare it so we can use it
