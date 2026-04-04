@@ -1,14 +1,14 @@
 #pragma once
 
 #include <cassert>
+#include <vector>
 #include "VoxelType.h"
 
 struct VoxelChunk{
-  Voxel *xyzVoxels=nullptr;
+  std::vector<Voxel> xyzVoxels;
   bool isDirty=false;
 
-  VoxelChunk(size_t aWidth) : myWidth(aWidth){
-    xyzVoxels = new Voxel[aWidth * aWidth * aWidth]{};
+  VoxelChunk(size_t aWidth) : xyzVoxels(aWidth * aWidth * aWidth), myWidth(aWidth){
   }
 
   // direct access via index

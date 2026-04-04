@@ -6,14 +6,14 @@ struct VoxelChunk;
 class Scene;
 
 struct VoxelContext {
-  Voxel *voxels;
-  VoxelType type;
+  const VoxelChunk& src;
+  const size_t width;
+  VoxelChunk& dst;
+  Voxel voxel;
   VoxelIndex index;
   glm::ivec3 gridPos;
-  VoxelIndex chunkSize;
-  VoxelChunk& voxelChunk;
-  VoxelBitset *xyMovedVoxels;
 };
+
 
 class PhysicsEngine {
 public:

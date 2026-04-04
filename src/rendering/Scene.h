@@ -28,6 +28,10 @@ public:
   void Render();
   void Update();
   inline VoxelChunk& GetVoxelChunk() { return myVoxelChunk; }
+  inline void CopyChunk(const VoxelChunk& chunk) {
+    assert(chunk.GetWidth() == myVoxelChunk.GetWidth() && "Copied chunks MUST have the same size");
+    myVoxelChunk = chunk;
+  }
   inline const VoxelChunkViews& GetChunkViews() const {return myChunkViews; }
   inline Mesh& GetVoxelMesh() { return myChunkMesh; }
   inline MeshStats GetStats() const { return myChunkMesher.latestStats; }

@@ -10,8 +10,6 @@ PhysicsEngine::PhysicsEngine(Scene &aScene) : myScene(aScene) {
 }
 
 void PhysicsEngine::SimulateChunk() {
-  VoxelChunk &chunk = myScene.GetVoxelChunk();
-  const VoxelIndex chunkSize = chunk.GetWidth();
 
   // We swap which direction on x-z plane we iterate
   // every frame
@@ -23,31 +21,31 @@ void PhysicsEngine::SimulateChunk() {
   // clear moved voxels
   memset(xyMovedVoxels, 0, CHUNK_SIZE * CHUNK_SIZE * sizeof(VoxelBitset));
 
+  // create src and dst
+  const VoxelChunk &src = myScene.GetVoxelChunk();
+  const VoxelIndex chunkSize = src.GetWidth();
+  VoxelChunk dst{src};
+
+  VoxelContext ctx{src, chunkSize, dst, VoxelType_EMPTY, 0, {}};
+
   // Iterate for every z, from the bottom to top...
   for (VoxelIndex y = 0; y < chunkSize; y++)
-    for (VoxelIndex zz = 0; zz < chunkSize; zz++) {
-      VoxelIndex z = reverseZ ? (chunkSize - 1 - zz) : zz;
-      for (VoxelIndex xx = 0; xx < chunkSize; xx++) {
+    for (VoxelIndex iz = 0; iz < chunkSize; iz++) {
+      VoxelIndex z = reverseZ ? (chunkSize - 1 - iz) : iz;
+      for (VoxelIndex ix = 0; ix < chunkSize; ix++) {
+        VoxelIndex x = reverseX ? (chunkSize - 1 - ix) : ix;
         // iterate every voxel in this vertical chunk slice...
-        VoxelIndex x = reverseX ? (chunkSize - 1 - xx) : xx;
-        VoxelIndex index = x + y * chunkSize + z * chunkSize * chunkSize;
-        Voxel &voxel = chunk[index];
+        ctx.index = x + y * chunkSize + z * chunkSize * chunkSize;
+        ctx.voxel = src[ctx.index];
 
         // skip all empty voxels
-        if (voxel == VoxelType_EMPTY)
-          continue;
-        if ((xyMovedVoxels[x + y * CHUNK_SIZE] & (VoxelBitset(1) << z)) !=
-            VoxelBitset(0))
+        if (ctx.voxel == VoxelType_EMPTY)
           continue;
 
-        // Create context to share to sub-functions
-        VoxelContext ctx{chunk.xyzVoxels, (VoxelType)voxel,
-                         index,           getVoxelGridPosition(index),
-                         chunkSize,       chunk,
-                         xyMovedVoxels};
+        ctx.gridPos = getVoxelGridPosition(ctx.index);
 
         // Simulate voxels
-        switch (voxel) {
+        switch (ctx.voxel) {
         case (VoxelType_SAND):
           if (SimulateSand(ctx)) {
             somethingMoved = true;
@@ -57,12 +55,15 @@ void PhysicsEngine::SimulateChunk() {
           if (SimulateWater(ctx)) {
             somethingMoved = true;
           }
+          break;
         }
       }
     }
 
   if (somethingMoved)
-    chunk.isDirty = true;
+    dst.isDirty = true;
+
+  myScene.CopyChunk(dst);  
 }
 
 bool PhysicsEngine::SimulateSand(const VoxelContext &ctx) {
@@ -90,26 +91,17 @@ bool PhysicsEngine::MoveSandDownOnWater(const VoxelContext &ctx) {
   if (ctx.gridPos.y <= 0)
     return false;
 
-  VoxelIndex indexUnder = ctx.index - ctx.chunkSize;
-  if (ctx.voxels[indexUnder] != VoxelType_WATER)
+  // only move down if water under
+  size_t indexUnder = ctx.index - ctx.width;
+  if (ctx.src[indexUnder] != VoxelType_WATER)
+    return false;
+  if (ctx.dst[indexUnder] != ctx.src[indexUnder])
     return false;
 
-  // // Swap with horizontal neighbour first
-  // VoxelIndex horNeighbour;
-  // if(GetRandHorizontalNeighbour(ctx, horNeighbour)){
-  //   ctx.voxelChunk.SwapVoxels(indexUnder, horNeighbour);
-  //   return true;
-  // }
+  // swap them in the dst
+  ctx.dst[ctx.index] = VoxelType_WATER;
+  ctx.dst[indexUnder] = VoxelType_SAND;
 
-  // ctx.voxelChunk.SwapVoxels(ctx.index, indexUnder);
-  ctx.voxelChunk[ctx.index] = VoxelType_WATER;
-  ctx.voxelChunk[indexUnder] = VoxelType_SAND;
-
-  glm::ivec3 sandDest = getVoxelGridPosition(indexUnder);
-  ctx.xyMovedVoxels[sandDest.x + sandDest.y * CHUNK_SIZE] |=
-      (VoxelBitset(1) << sandDest.z);
-  ctx.xyMovedVoxels[ctx.gridPos.x + ctx.gridPos.y * CHUNK_SIZE] |=
-      (VoxelBitset(1) << ctx.gridPos.z);
   return true;
 }
 
@@ -118,20 +110,16 @@ bool PhysicsEngine::MoveVoxelStraightDown(const VoxelContext &ctx) {
   if (ctx.gridPos.y == 0)
     return false;
 
-  // check if it's empty under
-  VoxelIndex indexUnder = ctx.index - ctx.chunkSize;
-  Voxel &voxelUnder = ctx.voxels[indexUnder];
-
-  // if not empty, return
-  if (voxelUnder != VoxelType_EMPTY)
+  // only move down on empty
+  VoxelIndex indexUnder = ctx.index - ctx.width;
+  if (ctx.src[indexUnder] != VoxelType_EMPTY)
+    return false;
+  if (ctx.dst[indexUnder] != ctx.src[indexUnder])
     return false;
 
-  // swap this voxel with the one under
-  std::swap(ctx.voxelChunk[indexUnder], ctx.voxelChunk[ctx.index]);
-
-  // mark destination as moved
-  glm::ivec3 dest = getVoxelGridPosition(indexUnder);
-  ctx.xyMovedVoxels[dest.x + dest.y * CHUNK_SIZE] |= (VoxelBitset(1) << dest.z);
+  // swap this voxel with the one under in the dst
+  ctx.dst[indexUnder] = ctx.src[ctx.index];
+  ctx.dst[ctx.index] = ctx.src[indexUnder];
   return true;
 }
 
@@ -144,37 +132,33 @@ bool PhysicsEngine::MoveVoxelDiagonallyDown(const VoxelContext &ctx) {
   if (!GetRandDiagonalNeighbour(ctx, chosen))
     return false;
 
-  std::swap(ctx.voxelChunk[chosen], ctx.voxelChunk[ctx.index]);
+  // swap
+  ctx.dst[chosen] = ctx.src[ctx.index];
+  ctx.dst[ctx.index] = ctx.src[chosen]; 
 
-  // mark destination as moved
-  glm::ivec3 dest = getVoxelGridPosition(chosen);
-  ctx.xyMovedVoxels[dest.x + dest.y * CHUNK_SIZE] |= (VoxelBitset(1) << dest.z);
   return true;
 }
 
 bool PhysicsEngine::MoveVoxelHorizontally(const VoxelContext &ctx) {
   // Add more spread if above is water ???
-  bool aboveIsWater = ctx.gridPos.y < ctx.chunkSize - 1 &&
-                      ctx.voxels[ctx.index + ctx.chunkSize] == VoxelType_WATER;
-  bool weAreWater = ctx.type == VoxelType_WATER;
+  bool aboveIsWater = ctx.gridPos.y < ctx.width - 1 &&
+                      ctx.src[ctx.index + ctx.width] == VoxelType_WATER;
+  bool weAreWater = ctx.voxel == VoxelType_WATER;
   int spreadChance = aboveIsWater and weAreWater ? 1 : 3;
   if (rand() % spreadChance != 0)
     return false;
 
   // nothing below, keep falling
   if (ctx.gridPos.y > 0 &&
-      ctx.voxels[ctx.index - ctx.chunkSize] == VoxelType_EMPTY)
+      ctx.src[ctx.index - ctx.width] == VoxelType_EMPTY)
     return false;
 
   VoxelIndex chosen;
   if (!GetRandHorizontalNeighbour(ctx, chosen)) {
     return false;
   }
-  std::swap(ctx.voxelChunk[ctx.index], ctx.voxelChunk[chosen]);
-
-  // mark destination as moved
-  glm::ivec3 dest = getVoxelGridPosition(chosen);
-  ctx.xyMovedVoxels[dest.x + dest.y * CHUNK_SIZE] |= (VoxelBitset(1) << dest.z);
+  ctx.dst[ctx.index] = ctx.src[chosen];
+  ctx.dst[chosen] = ctx.src[ctx.index];
   return true;
 }
 
@@ -184,26 +168,26 @@ bool PhysicsEngine::GetRandDiagonalNeighbour(const VoxelContext &ctx,
   size_t count = 0;
 
   // cache index under and the size of a z slice
-  const VoxelIndex indexUnder = ctx.index - ctx.chunkSize;
-  const VoxelIndex zSliceSize = ctx.chunkSize * ctx.chunkSize;
+  const VoxelIndex indexUnder = ctx.index - ctx.width;
+  const VoxelIndex zSliceSize = ctx.width * ctx.width;
 
   // check diagonal left
-  if (ctx.gridPos.x > 0 && ctx.voxels[indexUnder - 1] == VoxelType_EMPTY) {
+  if (ctx.gridPos.x > 0 && ctx.src[indexUnder - 1] == VoxelType_EMPTY && ctx.dst[indexUnder - 1] == ctx.src[indexUnder - 1]) {
     candidates[count++] = indexUnder - 1;
   }
   // check diagonal right
-  if (ctx.gridPos.x < ctx.chunkSize - 1 &&
-      ctx.voxels[indexUnder + 1] == VoxelType_EMPTY) {
+  if (ctx.gridPos.x < ctx.width - 1 &&
+      ctx.src[indexUnder + 1] == VoxelType_EMPTY && ctx.dst[indexUnder + 1] == ctx.src[indexUnder + 1]) {
     candidates[count++] = indexUnder + 1;
   }
   // check diagonal front
-  if (ctx.gridPos.z < ctx.chunkSize - 1 &&
-      ctx.voxels[indexUnder + zSliceSize] == VoxelType_EMPTY) {
+  if (ctx.gridPos.z < ctx.width - 1 &&
+      ctx.src[indexUnder + zSliceSize] == VoxelType_EMPTY && ctx.dst[indexUnder + zSliceSize] == ctx.src[indexUnder + zSliceSize]) {
     candidates[count++] = indexUnder + zSliceSize;
   }
   // check diagonal back
   if (ctx.gridPos.z > 0 &&
-      ctx.voxels[indexUnder - zSliceSize] == VoxelType_EMPTY) {
+      ctx.src[indexUnder - zSliceSize] == VoxelType_EMPTY && ctx.dst[indexUnder - zSliceSize] == ctx.src[indexUnder - zSliceSize]) {
     candidates[count++] = indexUnder - zSliceSize;
   }
 
@@ -221,25 +205,25 @@ bool PhysicsEngine::GetRandHorizontalNeighbour(const VoxelContext &ctx,
   VoxelIndex candidates[4];
   size_t count = 0;
 
-  const VoxelIndex zSliceSize = ctx.chunkSize * ctx.chunkSize;
+  const VoxelIndex zSliceSize = ctx.width * ctx.width;
 
   // Horizontally left
-  if (ctx.gridPos.x > 0 and ctx.voxels[ctx.index - 1] == VoxelType_EMPTY) {
+  if (ctx.gridPos.x > 0 and ctx.src[ctx.index - 1] == VoxelType_EMPTY and ctx.dst[ctx.index - 1] == ctx.src[ctx.index - 1]) {
     candidates[count++] = ctx.index - 1;
   }
   // Horizontally right
-  if (ctx.gridPos.x < ctx.chunkSize - 1 and
-      ctx.voxels[ctx.index + 1] == VoxelType_EMPTY) {
+  if (ctx.gridPos.x < ctx.width - 1 and
+      ctx.src[ctx.index + 1] == VoxelType_EMPTY and ctx.dst[ctx.index + 1] == ctx.src[ctx.index + 1]) {
     candidates[count++] = ctx.index + 1;
   }
   // Horizontally forward
-  if (ctx.gridPos.z < ctx.chunkSize - 1 and
-      ctx.voxels[ctx.index + zSliceSize] == VoxelType_EMPTY) {
+  if (ctx.gridPos.z < ctx.width - 1 and
+      ctx.src[ctx.index + zSliceSize] == VoxelType_EMPTY and ctx.dst[ctx.index + zSliceSize] == ctx.src[ctx.index + zSliceSize]) {
     candidates[count++] = ctx.index + zSliceSize;
   }
   // Horizontally back
   if (ctx.gridPos.z > 0 and
-      ctx.voxels[ctx.index - zSliceSize] == VoxelType_EMPTY) {
+      ctx.src[ctx.index - zSliceSize] == VoxelType_EMPTY and ctx.dst[ctx.index - zSliceSize] == ctx.src[ctx.index - zSliceSize]) {
     candidates[count++] = ctx.index - zSliceSize;
   }
 
