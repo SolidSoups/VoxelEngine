@@ -9,7 +9,7 @@ struct VoxelChunk;
 struct PainterState {
   glm::vec3 cursorPosition{0};
   int radius = 1;
-  BrushType brush = BrushType_VOXEL;
+  BrushType brush = BrushType_SPHERE;
   VoxelType color = VoxelType_EMPTY;
   bool drawCursor = false;
 

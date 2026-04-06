@@ -33,54 +33,12 @@ void BrushEditor::Draw() {
   ImGui::Dummy(ImVec2(0, 5));
 
 
-  DrawVoxelType();
-  DrawBrushType();
-
-  ImGui::Separator();
-
-  static glm::ivec3 drawPositionA{32};
-  static glm::ivec3 drawPositionB{0};
-  static int radius = 10;
-
-  ImGui::Dummy(ImVec2(0, 5));
-  if(myBrushType == BrushType_VOXEL){
-    DrawIVec3("Position", "##PositionA", drawPositionA);
-  }
-  else if(myBrushType == BrushType_RECTOID){
-    DrawIVec3("Position A", "##PositionA", drawPositionA);
-    ImGui::Dummy(ImVec2(0, 3));
-    DrawIVec3("Position B", "##PositionB", drawPositionB);
-  }
-  else if(myBrushType == BrushType_SPHERE){
-    DrawIVec3("Center", "##PositionA", drawPositionA);
-    ImGui::Dummy(ImVec2(0, 3));
-    ImGui::AlignTextToFramePadding();
-    ImGui::Text("Radius");
-    ImGui::SameLine();
-    if(ImGui::DragInt("##Radius", &radius, 1, 0, CHUNK_SIZE / 2 - 1)){
-      auto& painterState = PainterState::Get();
-      painterState.radius = radius;
-    }
-  }
-
-  ImGui::Dummy(ImVec2(0, 5));
-
-  if(ImGui::Button("Paint")){
-    VoxelPainter::SetBrushColor(mySelectedVoxelType);
-    VoxelPainter::SetBrushType(myBrushType);
-    VoxelPainter::EditorPaint(drawPositionA, drawPositionB, radius);
-  }
-  ImGui::SameLine();
-  if(ImGui::Button("Clear")){
-    VoxelPainter::SetBrushColor(VoxelType_EMPTY);
-    VoxelPainter::SetBrushType(BrushType_RECTOID);
-    VoxelPainter::EditorPaint(glm::ivec3{0}, glm::ivec3{CHUNK_SIZE-1}, 0);
-  }
-
   ImGui::End();
+
 }
 
 void BrushEditor::DrawPalette(){
+  // func for image button with selectable
   auto ImagePaletteButton = [&](const char* id, Texture&tex, VoxelType type){
     bool selected = (mySelectedVoxelType == type);
     if(selected)
@@ -93,12 +51,15 @@ void BrushEditor::DrawPalette(){
     if(selected)
       ImGui::PopStyleColor();
   };
+
+  // calc width and height so imgui doesn't steal all space
   float totalWidth = BUTTON_COUNT * PALETTE_BUTTON_SIZE.x +
                      (BUTTON_COUNT - 1) * ImGui::GetStyle().ItemSpacing.x +
                      ImGui::GetStyle().FramePadding.x * 2 * BUTTON_COUNT;
   float totalHeight = PALETTE_BUTTON_SIZE.y + ImGui::GetStyle().FramePadding.y * 2;
 
 
+  // draw all voxel type options
   ImGui::Text("Voxel Palette");
   ImGui::BeginChild("##TypePalette", ImVec2(totalWidth, totalHeight));
   ImagePaletteButton("##EmptyVoxel", *myEmptyVoxelTexture, VoxelType_EMPTY);
@@ -113,6 +74,7 @@ void BrushEditor::DrawPalette(){
 
 
 void BrushEditor::DrawBrushes(){
+  // function for brushes
   auto ImagePaletteButton = [&](const char* id, Texture&tex, BrushType type){
     bool selected = (myBrushType == type);
     if(selected)
@@ -126,40 +88,27 @@ void BrushEditor::DrawBrushes(){
       ImGui::PopStyleColor();
   };
 
+  // calc width and height
   float totalWidth = BRUSH_COUNT * PALETTE_BUTTON_SIZE.x +
                      (BRUSH_COUNT - 1) * ImGui::GetStyle().ItemSpacing.x +
                      ImGui::GetStyle().FramePadding.x * 2 * BRUSH_COUNT;
   float totalHeight = PALETTE_BUTTON_SIZE.y + ImGui::GetStyle().FramePadding.y * 2;
 
+  // draw brushes
   ImGui::Text("Brushes");
   ImGui::BeginChild("##BrushPalette", ImVec2(totalWidth, totalHeight));
   ImagePaletteButton("##SphereBrush", *myPenTexture, BrushType_SPHERE);
   ImGui::EndChild();
-}
 
-void BrushEditor::DrawVoxelType(){
-  static int selectedTypeIdx = (int)mySelectedVoxelType;
-  if(ImGuiHelpers::DrawCombo("Voxel Type", ourVoxelNames.data(), ourVoxelNames.size(), selectedTypeIdx)){
-    mySelectedVoxelType = (VoxelType)selectedTypeIdx;
-    auto& painterState = PainterState::Get();
-    painterState.color = (VoxelType)selectedTypeIdx;
-  }
-}
-void BrushEditor::DrawBrushType(){
-  const char *brushTypes[] = {"VOXEL", "RECTOID", "SPHERE"};
-  static int selectedBrushIdx = (int)myBrushType;
-  if(ImGuiHelpers::DrawCombo("Brush Type", brushTypes, IM_ARRAYSIZE(brushTypes), selectedBrushIdx)){
-    myBrushType = (BrushType)selectedBrushIdx;
-    auto& pState = PainterState::Get();
-    pState.brush = (BrushType)selectedBrushIdx;
+  ImGui::Dummy(ImVec2(0, 3));
+
+  // draw radius
+  auto& paintState = PainterState::Get();
+  int rad = paintState.radius;
+  if(myBrushType == BrushType_SPHERE){
+    if(ImGui::SliderInt("Radius", &rad, 1, (CHUNK_SIZE / 2) - 1)){
+      paintState.radius = rad;
+    }
   }
 }
 
-
-
-void BrushEditor::DrawIVec3(const char* aName, const char* aID, glm::ivec3& aVec3){
-  ImGui::AlignTextToFramePadding();
-  ImGui::Text(aName);
-  ImGui::SameLine();
-  ImGui::DragInt3(aID, &aVec3.x, 1, 0, CHUNK_SIZE-1);
-}

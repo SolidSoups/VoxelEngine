@@ -15,13 +15,10 @@ public:
   void Draw() override; 
 
 private:
-  void DrawVoxelType();
-  void DrawBrushType();
-  void DrawIVec3(const char* aName, const char* aID, glm::ivec3& aVec3);
   void DrawPalette();
   void DrawBrushes();
   VoxelType mySelectedVoxelType = VoxelType_EMPTY;
-  BrushType myBrushType = BrushType_VOXEL; 
+  BrushType myBrushType = BrushType_SPHERE; 
 
 private: // textures
   std::unique_ptr<Texture> myPenTexture;
