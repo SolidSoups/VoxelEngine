@@ -89,9 +89,20 @@ bool PhysicsEngine::SimulateSand(const VoxelContext &ctx) {
 bool PhysicsEngine::SimulateWater(const VoxelContext &ctx) {
   if (FallDown(ctx))
     return true;
+
+  // check pressure (the amount of water blocks above), prioritize 
+  // spreading horizontally if covered
+  bool underPressure = ctx.gridPos.y < ctx.width - 1 and
+                       ctx.dst[ctx.index + ctx.width] == VoxelType_WATER;
+  if(underPressure){
+    if(SpreadHorizontally(ctx))
+      return true;
+    return FallDiagonally(ctx);
+  }
+
+  // surface water, fall diagonally first, then spread
   if (FallDiagonally(ctx))
     return true;
-
   return SpreadHorizontally(ctx);
 }
 
