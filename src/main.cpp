@@ -5,6 +5,7 @@
 #include "rendering/Scene.h"
 #include "app/InputLayer.h"
 #include "physics/PhysicsScheduler.h"
+#include "physics/PhysicsEngine.h"
 #include "rendering/CameraController.h"
 #include "voxel/VoxelPainter.h"
 #include "rendering/Camera.h"
@@ -34,6 +35,7 @@ int main() {
 
   EditorLayer::AddRuntimeEditor(&physicsRuntime);
   EditorLayer::AddStatsEditor(myScene, physicsRuntime);
+  EditorLayer::AddPhysicsDebugEditor(physicsRuntime.GetEngine());
 
   VoxelPainter::SetCurrentChunk(&myScene.GetVoxelChunk());
   VoxelPainter painter;

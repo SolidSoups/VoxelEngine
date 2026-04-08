@@ -7,6 +7,7 @@ struct GLFWwindow;
 class KeybindsEditor;
 class BrushEditor;
 class PhysicsScheduler;
+class PhysicsEngine;
 class ViewportEditor;
 class StatsEditor;
 class Scene;
@@ -22,6 +23,7 @@ public:
 public:
   static void AddRuntimeEditor(PhysicsScheduler* aPhysicsRuntime);
   static void AddStatsEditor(Scene& aStatsEditor, PhysicsScheduler& aPhysicsRuntime);
+  static void AddPhysicsDebugEditor(PhysicsEngine& aEngine);
 
   static glm::ivec2 GetViewportSize();
 private:

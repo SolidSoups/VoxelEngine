@@ -8,6 +8,12 @@ struct VoxelChunkViews;
 struct VoxelContext;
 class Scene;
 
+struct PhysicsDebugData {
+    const uint8_t    *heightMap;
+    const glm::vec2  *slopeMap;
+    const VoxelBitset *movedVoxels;
+};
+
 class PhysicsEngine
 {
   public:
@@ -19,6 +25,8 @@ class PhysicsEngine
     bool SimulateSand(const VoxelContext &ctx);
     bool SimulateWater(const VoxelContext &ctx);
 
+    PhysicsDebugData GetDebugData() const;
+
   private:
     void CreateHeightMap(const VoxelChunkViews& someViews);
     void CreateSlopeMap();
@@ -26,6 +34,6 @@ class PhysicsEngine
     uint32_t     myFrameCounter = 0;
     Scene       &myScene;
     VoxelBitset *xyMovedVoxels;
-    uint8_t* myXZHeightMap = nullptr;
-    glm::vec2* myXZSlopeMap = nullptr;
+    uint8_t    *myXZHeightMap = nullptr;
+    glm::vec2  *myXZSlopeMap  = nullptr;
 };

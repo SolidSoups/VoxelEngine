@@ -11,6 +11,7 @@
 #include "editors/BrushEditor.h"
 #include "editors/ViewportEditor.h"
 #include "editors/StatsEditor.h"
+#include "editors/PhysicsDebugEditor.h"
 #include "imgui_internal.h"
 
 std::unique_ptr<KeybindsEditor> EditorLayer::myKeybindsEditor;
@@ -80,6 +81,10 @@ void EditorLayer::AddRuntimeEditor(PhysicsScheduler* aPhysicsRuntime){
 }
 void EditorLayer::AddStatsEditor(Scene& aScene, PhysicsScheduler& aRuntime){
   myStatsEditor = std::make_unique<StatsEditor>(aScene, aRuntime);
+}
+
+void EditorLayer::AddPhysicsDebugEditor(PhysicsEngine& aEngine){
+  myEditors.push_back(std::make_unique<PhysicsDebugEditor>(aEngine));
 }
 
 void EditorLayer::EndFrame() {

@@ -38,6 +38,7 @@ public:
   inline float GetTotalTickLength(){
     return 1.0f / stepsPerSecond;
   }
+  inline PhysicsEngine& GetEngine() { return *myEngine; }
   int stepsPerSecond = 16;
 private:
 

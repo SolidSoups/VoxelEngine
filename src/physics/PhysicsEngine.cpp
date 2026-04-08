@@ -80,6 +80,7 @@ void PhysicsEngine::SimulateChunk()
                     if (SimulateWater(ctx))
                     {
                         somethingMoved = true;
+                        xyMovedVoxels[x + z * CHUNK_SIZE] |= (VoxelBitset(1) << y);
                     }
                     break;
                 }
@@ -131,6 +132,11 @@ bool PhysicsEngine::SimulateWater(const VoxelContext &ctx)
 
     // return SpreadHorizontally(ctx);
     return false;
+}
+
+PhysicsDebugData PhysicsEngine::GetDebugData() const
+{
+    return {myXZHeightMap, myXZSlopeMap, xyMovedVoxels};
 }
 
 void PhysicsEngine::CreateHeightMap(const VoxelChunkViews &someViews)
