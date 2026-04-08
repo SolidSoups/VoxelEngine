@@ -4,6 +4,7 @@
 
 #include <glm/mat4x4.hpp>
 #include "rendering/Framebuffer.h"
+#include "rendering/DebugMode.h"
 
 class NaiveCube;
 class ViewportGrid;
@@ -33,6 +34,11 @@ public:
   static void DrawVoxelGrid();
   static void SetWireframeMode(bool aMode);
 
+  static void SetDebugTexture(unsigned int aTex, DebugMode aMode);
+  static void ClearDebugTexture();
+  static unsigned int GetDebugTexture() { return myDebugTexture; }
+  static DebugMode    GetDebugMode()    { return myDebugMode; }
+
   static Framebuffer framebuffer;
 private:
   static std::unique_ptr<Shader> myShader;
@@ -40,5 +46,7 @@ private:
   static std::unique_ptr<NaiveCube> myNaiveCube;
   static std::unique_ptr<ViewportGrid> myViewportGrid;
   static std::vector<std::unique_ptr<Renderpass>> myRenderpasses;
-  static bool myIsWireframeMode;
+  static bool          myIsWireframeMode;
+  static unsigned int  myDebugTexture;
+  static DebugMode     myDebugMode;
 };

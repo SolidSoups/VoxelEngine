@@ -6,6 +6,7 @@
 #include <algorithm>
 
 #include "physics/PhysicsEngine.h"
+#include "rendering/Renderer.h"
 #include "voxel/VoxelType.h"
 
 static constexpr int TEX_SIZE = CHUNK_SIZE;
@@ -43,6 +44,7 @@ void PhysicsDebugEditor::UpdateTextures()
 {
     PhysicsDebugData data = myEngine.GetDebugData();
 
+    // make height map texture
     {
         uint8_t maxH = 1;
         for (int i = 0; i < TEX_SIZE * TEX_SIZE; i++)
@@ -58,6 +60,7 @@ void PhysicsDebugEditor::UpdateTextures()
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
+    // make slope direction texture
     {
         static uint8_t pixels[TEX_SIZE * TEX_SIZE * 4];
         for (int z = 0; z < TEX_SIZE; z++)
@@ -68,15 +71,17 @@ void PhysicsDebugEditor::UpdateTextures()
                 float     len   = glm::length(slope);
                 int       idx   = (x + z * TEX_SIZE) * 4;
 
+                // invalid slopes become RED
                 if (len < 0.001f)
                 {
-                    pixels[idx + 0] = 0;
+                    pixels[idx + 0] = 255;
                     pixels[idx + 1] = 0;
                     pixels[idx + 2] = 0;
                     pixels[idx + 3] = 255;
                 }
                 else
                 {
+                    // we need to normalize vectors (-1 -> 1) => (0 -> 1)
                     glm::vec2 n = slope / len;
                     pixels[idx + 0] = (uint8_t)((n.x * 0.5f + 0.5f) * 255);
                     pixels[idx + 1] = (uint8_t)((n.y * 0.5f + 0.5f) * 255);
@@ -91,6 +96,7 @@ void PhysicsDebugEditor::UpdateTextures()
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
+    // make 'movement' texture
     {
         static uint8_t pixels[TEX_SIZE * TEX_SIZE];
         for (int z = 0; z < TEX_SIZE; z++)
@@ -98,8 +104,8 @@ void PhysicsDebugEditor::UpdateTextures()
             for (int x = 0; x < TEX_SIZE; x++)
             {
                 VoxelBitset bits  = data.movedVoxels[x + z * TEX_SIZE];
-                int         count = __builtin_popcountll(bits);
-                pixels[x + z * TEX_SIZE] = (uint8_t)std::min(count * 16, 255);
+                int         count = std::popcount(bits);
+                pixels[x + z * TEX_SIZE] = (uint8_t)std::min(count * 64, 255);
             }
         }
 
@@ -116,14 +122,30 @@ void PhysicsDebugEditor::Draw()
 
     if (!myEnabled)
     {
+        Renderer::ClearDebugTexture();
         ImGui::End();
         return;
     }
 
+    const char *modes[] = {"Height Map", "Slope Direction", "Moved This Frame"};
+    int         current = (int)mySelectedMode - 1;
+    ImGui::Combo("3D View", &current, modes, 3);
+    mySelectedMode = (DebugMode)(current + 1);
+
     UpdateTextures();
 
+    unsigned int activeTex = 0;
+    switch (mySelectedMode)
+    {
+    case DebugMode::HeightMap:      activeTex = myHeightMapTex; break;
+    case DebugMode::SlopeDirection: activeTex = mySlopeMapTex;  break;
+    case DebugMode::MovedThisFrame: activeTex = myMovedTex;     break;
+    default: break;
+    }
+    Renderer::SetDebugTexture(activeTex, mySelectedMode);
+
     constexpr float PADDING    = 8.f;
-    constexpr float TEX_DISPLAY = 200.f;
+    constexpr float TEX_DISPLAY = 400.f;
     ImVec2          size{TEX_DISPLAY, TEX_DISPLAY};
 
     ImGui::BeginGroup();

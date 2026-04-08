@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Editor.h"
+#include "rendering/Renderer.h"
 
 class PhysicsEngine;
 
@@ -17,7 +18,8 @@ private:
     void UpdateTextures();
 
     PhysicsEngine &myEngine;
-    bool           myEnabled = false;
+    bool           myEnabled      = false;
+    DebugMode      mySelectedMode = DebugMode::SlopeDirection;
 
     unsigned int myHeightMapTex = 0;
     unsigned int mySlopeMapTex  = 0;
