@@ -1,18 +1,18 @@
-#include "physics/PhysicsRuntime.h"
+#include "physics/PhysicsScheduler.h"
 
 #include <print>
 #include "physics/PhysicsEngine.h"
 #include "rendering/Scene.h"
 
-PhysicsRuntime::PhysicsRuntime(Scene &aScene) {
+PhysicsScheduler::PhysicsScheduler(Scene &aScene) {
   myEngine = new PhysicsEngine(aScene);
 }
-PhysicsRuntime::~PhysicsRuntime() {
+PhysicsScheduler::~PhysicsScheduler() {
   if (myEngine)
     delete myEngine;
 }
 
-void PhysicsRuntime::Update(float aDeltaTime) {
+void PhysicsScheduler::Update(float aDeltaTime) {
   if (myRuntimeMode == RuntimeMode_RUNNING) {
     RunAuto(aDeltaTime);
   } else if (myRuntimeMode == RuntimeMode_PAUSED) {
@@ -20,14 +20,14 @@ void PhysicsRuntime::Update(float aDeltaTime) {
   } else if (myRuntimeMode == RuntimeMode_STOPPED)
     return;
 }
-void PhysicsRuntime::RunStepped() {
+void PhysicsScheduler::RunStepped() {
   if (myCanRunNextStep) {
     SimulateOneStep();
     myCanRunNextStep = false;
   }
 }
 
-void PhysicsRuntime::RunAuto(float aDeltaTime) {
+void PhysicsScheduler::RunAuto(float aDeltaTime) {
   // we don't want division by zero
   if (stepsPerSecond == 0) {
     std::println(stderr, "Steps per second is zero, cannot step!");
@@ -45,7 +45,7 @@ void PhysicsRuntime::RunAuto(float aDeltaTime) {
   }
 }
 
-void PhysicsRuntime::SimulateOneStep() {
+void PhysicsScheduler::SimulateOneStep() {
   myEngine->SimulateChunk();
   myStepClock++;
 }

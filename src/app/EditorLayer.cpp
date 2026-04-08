@@ -73,12 +73,12 @@ glm::ivec2 EditorLayer::GetViewportSize(){
   return EditorLayer::myViewportEditor->viewportSize;
 }
 
-void EditorLayer::AddRuntimeEditor(PhysicsRuntime* aPhysicsRuntime){
+void EditorLayer::AddRuntimeEditor(PhysicsScheduler* aPhysicsRuntime){
   EditorLayer::myEditors.push_back(
     std::make_unique<PhysicsEditor>(aPhysicsRuntime)
   );
 }
-void EditorLayer::AddStatsEditor(Scene& aScene, PhysicsRuntime& aRuntime){
+void EditorLayer::AddStatsEditor(Scene& aScene, PhysicsScheduler& aRuntime){
   myStatsEditor = std::make_unique<StatsEditor>(aScene, aRuntime);
 }
 

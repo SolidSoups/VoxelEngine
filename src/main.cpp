@@ -4,7 +4,7 @@
 #include "rendering/Renderer.h"
 #include "rendering/Scene.h"
 #include "app/InputLayer.h"
-#include "physics/PhysicsRuntime.h"
+#include "physics/PhysicsScheduler.h"
 #include "rendering/CameraController.h"
 #include "voxel/VoxelPainter.h"
 #include "rendering/Camera.h"
@@ -30,7 +30,7 @@ int main() {
   Scene myScene;
   CameraController myCameraController;
   Camera myCamera;
-  PhysicsRuntime physicsRuntime(myScene);
+  PhysicsScheduler physicsRuntime(myScene);
 
   EditorLayer::AddRuntimeEditor(&physicsRuntime);
   EditorLayer::AddStatsEditor(myScene, physicsRuntime);

@@ -11,10 +11,10 @@ enum RuntimeMode : uint8_t {
   RuntimeMode_MAX
 };
 
-class PhysicsRuntime {
+class PhysicsScheduler {
 public:
-  PhysicsRuntime(Scene &aScene);
-  ~PhysicsRuntime();
+  PhysicsScheduler(Scene &aScene);
+  ~PhysicsScheduler();
   void Update(float aDeltaTime);
   inline void Reset() {
     myTimeAccumulator = 0.0f;

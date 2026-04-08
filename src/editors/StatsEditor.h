@@ -3,11 +3,11 @@
 #include "Editor.h"
 
 class Scene;
-class PhysicsRuntime;
+class PhysicsScheduler;
 
 class StatsEditor : public Editor {
 public:
-  StatsEditor(Scene &aScene, PhysicsRuntime& aRuntime);
+  StatsEditor(Scene &aScene, PhysicsScheduler& aRuntime);
   StatsEditor(const StatsEditor &) = delete;
   StatsEditor &operator=(const StatsEditor &) = delete;
   StatsEditor(StatsEditor &&other) noexcept = default;
@@ -29,5 +29,5 @@ private:
   int myFrameCount = 0;
 
   Scene &myScene;
-  PhysicsRuntime &myPhysicsRuntime;
+  PhysicsScheduler &myPhysicsRuntime;
 };

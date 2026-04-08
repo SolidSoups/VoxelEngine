@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 
 #include "rendering/Texture.h"
-#include "physics/PhysicsRuntime.h"
+#include "physics/PhysicsScheduler.h"
 
 #define PLAY_TEX_PATH "./res/play.png"
 #define PAUSE_TEX_PATH "./res/pause.png"
@@ -17,7 +17,7 @@
 
 #define BUTTON_SIZE ImVec2(32, 32)
 
-PhysicsEditor::PhysicsEditor(PhysicsRuntime *aRuntime) : myRuntime(aRuntime) {
+PhysicsEditor::PhysicsEditor(PhysicsScheduler *aRuntime) : myRuntime(aRuntime) {
   // customize the textures
   TextureConfig config;
   config.flipY = false;

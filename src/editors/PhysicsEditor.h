@@ -3,19 +3,19 @@
 #include <memory>
 #include "Editor.h"
 
-class PhysicsRuntime;
+class PhysicsScheduler;
 struct Texture;
 
 class PhysicsEditor : public Editor {
 public:
-  PhysicsEditor(PhysicsRuntime* aRuntime);
+  PhysicsEditor(PhysicsScheduler* aRuntime);
   ~PhysicsEditor();
   void Draw() override;
   void DrawButtonsNotRunning();
   void DrawButtonsRunning(bool isPaused);
 
 private:
-  PhysicsRuntime* myRuntime;
+  PhysicsScheduler* myRuntime;
 
   std::unique_ptr<Texture> myPlayTexture;
   std::unique_ptr<Texture> myPlayPausedTexture;

@@ -6,7 +6,7 @@
 
 #include "voxel/VoxelType.h"
 #include "rendering/Scene.h"
-#include "physics/PhysicsRuntime.h"
+#include "physics/PhysicsScheduler.h"
 
 // function exists, but only in the internal translation unit
 // forward declare it so we can use it
@@ -14,7 +14,7 @@ namespace ImPlot {
 bool IsItemHidden(const char *label_id);
 }
 
-StatsEditor::StatsEditor(Scene &aScene, PhysicsRuntime &aRuntime)
+StatsEditor::StatsEditor(Scene &aScene, PhysicsScheduler &aRuntime)
     : myScene(aScene), myPhysicsRuntime(aRuntime) {}
 
 void StatsEditor::Draw() {
