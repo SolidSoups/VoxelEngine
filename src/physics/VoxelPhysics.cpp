@@ -100,9 +100,9 @@ bool SurfaceWaterSpread(const VoxelContext &ctx)
 
     // ensure that the chosen position actually allows us to fall down
     int myHeight = ctx.xzSurfaceHeightMap[ctx.gridPos.x + ctx.gridPos.z * CHUNK_SIZE];
-    int nx = ctx.gridPos.x + (int)glm::sign(dir.x);
-    int ny = ctx.gridPos.z + (int)glm::sign(dir.y);
-    uint8_t neighbourHeight = ctx.xzSurfaceHeightMap[nx + ny * CHUNK_SIZE];
+    int nx = chosenIdx % CHUNK_SIZE;
+    int nz = chosenIdx / (CHUNK_SIZE * CHUNK_SIZE);
+    uint8_t neighbourHeight = ctx.xzSurfaceHeightMap[nx + nz * CHUNK_SIZE];
     int diff = myHeight - neighbourHeight;
     if(diff <= 0)
         return false;

@@ -124,9 +124,6 @@ bool PhysicsEngine::SimulateWater(const VoxelContext &ctx)
     // surface water, fall diagonally first, then spread
     if (FallDiagonally(ctx))
         return true;
-    // Stability check
-    if(CountHorizontalNeighbours(ctx) >= 3)
-        return false; // no movement
     if (SurfaceWaterSpread(ctx))
         return true;
 
@@ -141,26 +138,24 @@ PhysicsDebugData PhysicsEngine::GetDebugData() const
 
 void PhysicsEngine::CreateHeightMap(const VoxelChunkViews &someViews)
 {
+    VoxelBitset *xzWater = someViews.xzIsolatedVoxels + ourWaterID * CHUNK_SIZE * CHUNK_SIZE;
     for (int z = 0; z < CHUNK_SIZE; z++)
     {
         for (int x = 0; x < CHUNK_SIZE; x++)
         {
-            // find what height starts at
-            VoxelBitset column = someViews.xzOccupancy[x + z * CHUNK_SIZE];
-            size_t      start  = std::countr_zero(column);
-
-            // if the start is 64, then there is nothing in this column and
-            // right shifting will cause Undefined Behaviour
-            if (start == CHUNK_SIZE)
+            VoxelBitset column = xzWater[x + z * CHUNK_SIZE];
+            if (column == 0) // no bits in this column
             {
                 myXZHeightMap[x + z * CHUNK_SIZE] = 0;
                 continue;
             }
 
-            // get the total height
-            size_t size                       = std::countr_one(column << start);
-            int    height                     = start + size;
-            myXZHeightMap[x + z * CHUNK_SIZE] = height + 1;
+            int start       = std::countr_zero(column);
+            int width       = std::countr_one(column >> start);
+            int totalHeight = start + width;
+
+            // find the lowest water voxel from the top
+            myXZHeightMap[x + z * CHUNK_SIZE] = totalHeight;
         }
     }
 }
@@ -169,7 +164,7 @@ void PhysicsEngine::CreateSlopeMap()
 {
     // radius excluding center, ie would span a 3x3 grid
     constexpr int SAMPLE_RADIUS = 10;
-    constexpr int TOTAL_SAMPLES = (SAMPLE_RADIUS * 2 + 1)*(SAMPLE_RADIUS * 2 + 1);
+    constexpr int TOTAL_SAMPLES = (SAMPLE_RADIUS * 2 + 1) * (SAMPLE_RADIUS * 2 + 1);
 
     for (int z = 0; z < CHUNK_SIZE; z++)
     {
@@ -178,7 +173,7 @@ void PhysicsEngine::CreateSlopeMap()
             uint8_t columnHeight = myXZHeightMap[x + z * CHUNK_SIZE];
 
             // sample neighbouring cells for their height, pick the lowest one
-            int slopeX = 0, slopeZ = 0;
+            int slopeX = 0, slopeZ = 0, count = 0;
             for (int dz = -SAMPLE_RADIUS; dz <= SAMPLE_RADIUS; dz++)
             {
                 for (int dx = -SAMPLE_RADIUS; dx <= SAMPLE_RADIUS; dx++)
@@ -188,17 +183,25 @@ void PhysicsEngine::CreateSlopeMap()
 
                     int nx = x + dx;
                     int nz = z + dz;
-                    if (nx < 0 or nx >= CHUNK_SIZE or nz < 0 or nz >= CHUNK_SIZE)
-                        continue; // skip invalid cells
-                    
-                    int heightDiff = columnHeight - myXZHeightMap[nx + nz * CHUNK_SIZE];
-                    slopeX += dx * heightDiff;
-                    slopeZ += dz * heightDiff;
+                    bool invalid = (nx < 0 or nx >= CHUNK_SIZE or nz < 0 or nz >= CHUNK_SIZE);
+                    if(invalid) continue;
+                    uint8_t neighbourHeight = invalid ? 0 : myXZHeightMap[nx + nz * CHUNK_SIZE];
+
+                    int heightDiff = std::max(0, columnHeight - neighbourHeight);
+                    if (heightDiff != 0)
+                    {
+                        slopeX += dx * heightDiff;
+                        slopeZ += dz * heightDiff;
+                        count++;
+                    }
                 }
             }
 
             // store slope direction
-            myXZSlopeMap[x + z * CHUNK_SIZE] = glm::vec2((float)slopeX / TOTAL_SAMPLES, (float)slopeZ / TOTAL_SAMPLES);
+            if (count > 0)
+                myXZSlopeMap[x + z * CHUNK_SIZE] = glm::vec2((float) slopeX / count, (float) slopeZ / count);
+            else
+                myXZSlopeMap[x + z * CHUNK_SIZE] = glm::vec2(0.0f);
         }
     }
 }
