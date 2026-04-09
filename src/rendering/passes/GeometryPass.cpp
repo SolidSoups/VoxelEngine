@@ -57,7 +57,7 @@ void GeometryPass::Execute(RenderpassInfo &someInfo)
         myShader->setInt("uChunkSize", CHUNK_SIZE);
     }
     else{
-        myShader->setInt("uUseDebug", 0);
+        myShader->setInt("uDebugMode", 0);
     }
     
     auto &chunk = someInfo.scene.GetVoxelChunk();
