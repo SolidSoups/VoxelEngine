@@ -181,10 +181,11 @@ void PhysicsEngine::CreateSlopeMap()
                     if (dx == 0 and dz == 0)
                         continue; // skip center cell
 
-                    int nx = x + dx;
-                    int nz = z + dz;
+                    int  nx      = x + dx;
+                    int  nz      = z + dz;
                     bool invalid = (nx < 0 or nx >= CHUNK_SIZE or nz < 0 or nz >= CHUNK_SIZE);
-                    if(invalid) continue;
+                    if (invalid)
+                        continue;
                     uint8_t neighbourHeight = invalid ? 0 : myXZHeightMap[nx + nz * CHUNK_SIZE];
 
                     int heightDiff = std::max(0, columnHeight - neighbourHeight);
