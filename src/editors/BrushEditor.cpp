@@ -1,10 +1,7 @@
 #include "editors/BrushEditor.h"
 
-#include <print>
-
 #include <glm/glm.hpp>
 #include <imgui.h>
-#include "editors/ImGuiHelpers.h"
 #include "rendering/Texture.h"
 #include "voxel/VoxelType.h"
 #include "voxel/VoxelPainter.h"
@@ -80,7 +77,7 @@ void BrushEditor::DrawBrushes(){
     if(selected)
       ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
     if(ImGui::ImageButton(id, (ImTextureRef)(intptr_t)tex.id, PALETTE_BUTTON_SIZE)){
-      myBrushType = type;
+      myBrushType = selected ? BrushType_VOXEL : type;
       auto& painterState = PainterState::Get();
       painterState.brush = (BrushType)myBrushType;
     }

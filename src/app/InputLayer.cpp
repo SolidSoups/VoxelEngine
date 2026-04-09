@@ -51,6 +51,10 @@ void InputLayer::ControlScene(GLFWwindow *aWindow, Scene &aScene) {
 void InputLayer::ControlPainter(GLFWwindow* aWindow, Camera &aCamera, Scene& aScene, VoxelPainter& aPainter){
   if(!EditorIO::Get().ViewportIsHovered)
     return;
+  auto& paintState = PainterState::Get();
+  if(paintState.brush != BrushType_SPHERE)
+    return;
+
 
   static bool pressedLastFrame = false;
   static glm::ivec2 lastMousePixelPos{0};
@@ -92,7 +96,6 @@ void InputLayer::ControlPainter(GLFWwindow* aWindow, Camera &aCamera, Scene& aSc
   }
 
   // tell scene to display cursor
-  auto& paintState = PainterState::Get();
   if(gridPosition.x > 0){
     paintState.cursorPosition = (glm::vec3)gridPosition * stepSize;
     paintState.drawCursor = true;
