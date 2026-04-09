@@ -127,8 +127,7 @@ bool PhysicsEngine::SimulateWater(const VoxelContext &ctx)
     if (SurfaceWaterSpread(ctx))
         return true;
 
-    // return SpreadHorizontally(ctx);
-    return false;
+    return SpreadHorizontally(ctx);
 }
 
 PhysicsDebugData PhysicsEngine::GetDebugData() const
@@ -138,21 +137,18 @@ PhysicsDebugData PhysicsEngine::GetDebugData() const
 
 void PhysicsEngine::CreateHeightMap(const VoxelChunkViews &someViews)
 {
-    VoxelBitset *xzWater = someViews.xzIsolatedVoxels + ourWaterID * CHUNK_SIZE * CHUNK_SIZE;
     for (int z = 0; z < CHUNK_SIZE; z++)
     {
         for (int x = 0; x < CHUNK_SIZE; x++)
         {
-            VoxelBitset column = xzWater[x + z * CHUNK_SIZE];
+            VoxelBitset column = someViews.xzOccupancy[x + z * CHUNK_SIZE];
             if (column == 0) // no bits in this column
             {
                 myXZHeightMap[x + z * CHUNK_SIZE] = 0;
                 continue;
             }
 
-            int start       = std::countr_zero(column);
-            int width       = std::countr_one(column >> start);
-            int totalHeight = start + width;
+            int totalHeight = column == 0 ? 0 : (CHUNK_SIZE - std::countl_zero(column));
 
             // find the lowest water voxel from the top
             myXZHeightMap[x + z * CHUNK_SIZE] = totalHeight;
@@ -163,7 +159,7 @@ void PhysicsEngine::CreateHeightMap(const VoxelChunkViews &someViews)
 void PhysicsEngine::CreateSlopeMap()
 {
     // radius excluding center, ie would span a 3x3 grid
-    constexpr int SAMPLE_RADIUS = 10;
+    constexpr int SAMPLE_RADIUS = 4;
     constexpr int TOTAL_SAMPLES = (SAMPLE_RADIUS * 2 + 1) * (SAMPLE_RADIUS * 2 + 1);
 
     for (int z = 0; z < CHUNK_SIZE; z++)
@@ -189,12 +185,9 @@ void PhysicsEngine::CreateSlopeMap()
                     uint8_t neighbourHeight = invalid ? 0 : myXZHeightMap[nx + nz * CHUNK_SIZE];
 
                     int heightDiff = std::max(0, columnHeight - neighbourHeight);
-                    if (heightDiff != 0)
-                    {
-                        slopeX += dx * heightDiff;
-                        slopeZ += dz * heightDiff;
-                        count++;
-                    }
+                    slopeX += dx * heightDiff;
+                    slopeZ += dz * heightDiff;
+                    count++;
                 }
             }
 
