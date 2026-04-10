@@ -12,15 +12,17 @@
 
 PhysicsEngine::PhysicsEngine(Scene &aScene) : myScene(aScene)
 {
-    xyMovedVoxels = new VoxelBitset[CHUNK_SIZE * CHUNK_SIZE]();
-    myXZHeightMap = new uint8_t[CHUNK_SIZE * CHUNK_SIZE]();
-    myXZSlopeMap  = new glm::vec2[CHUNK_SIZE * CHUNK_SIZE]();
+    xyMovedVoxels   = new VoxelBitset[CHUNK_SIZE * CHUNK_SIZE]();
+    myXZHeightMap   = new uint8_t[CHUNK_SIZE * CHUNK_SIZE]();
+    myXZSlopeMap    = new glm::vec2[CHUNK_SIZE * CHUNK_SIZE]();
+    myXZFDASlopeMap = new glm::vec2[CHUNK_SIZE * CHUNK_SIZE]();
 }
 PhysicsEngine::~PhysicsEngine()
 {
     delete[] xyMovedVoxels;
     delete[] myXZHeightMap;
     delete[] myXZSlopeMap;
+    delete[] myXZFDASlopeMap;
 }
 
 void PhysicsEngine::SimulateChunk()
@@ -43,6 +45,7 @@ void PhysicsEngine::SimulateChunk()
 
     CreateHeightMap(myScene.GetChunkViews());
     CreateSlopeMap();
+    CreateSlopeMap_fda_d8();
 
     // Iterate for every z, from the bottom to top...
     for (VoxelIndex y = 0; y < chunkSize; y++)
@@ -67,7 +70,8 @@ void PhysicsEngine::SimulateChunk()
                                  .index              = x + y * chunkSize + z * chunkSize * chunkSize,
                                  .gridPos            = getVoxelGridPosition(index),
                                  .xzSurfaceHeightMap = myXZHeightMap,
-                                 .xzSurfaceSlopeMap  = myXZSlopeMap};
+                                 .xzSurfaceSlopeMap  = myXZSlopeMap,
+                                 .xzFDASlopeMap        = myXZFDASlopeMap};
 
                 // Simulate voxels
                 switch (ctx.voxel)
@@ -126,8 +130,13 @@ bool PhysicsEngine::SimulateWater(const VoxelContext &ctx)
     // surface water, fall diagonally first, then spread
     if (FallDiagonally(ctx))
         return true;
-    if (SurfaceWaterSpread(ctx))
-        return true;
+
+    bool isBlockUnder = ctx.gridPos.y > 0 and ctx.dst[ctx.index + CHUNK_SIZE] != VoxelType_EMPTY;
+    bool isBlockAbove = ctx.gridPos.y < CHUNK_SIZE and ctx.dst[ctx.index + CHUNK_SIZE] != VoxelType_EMPTY;
+    if(isBlockUnder and not isBlockAbove){
+        if(SurfaceWaterSpread(ctx))
+            return true;
+    }
 
     return SpreadHorizontally(ctx);
 }
@@ -147,6 +156,56 @@ void PhysicsEngine::CreateHeightMap(const VoxelChunkViews &someViews)
     }
 }
 
+void PhysicsEngine::CreateSlopeMap_fda_d8()
+{
+    constexpr int MAX_STEPS = 5;
+
+    // perform FDA for every cell
+    for (int z = 0; z < CHUNK_SIZE; z++)
+    {
+        for (int x = 0; x < CHUNK_SIZE; x++)
+        {
+            uint8_t height = myXZHeightMap[x + z * CHUNK_SIZE];
+
+            // goal: find a path of length MAX_STEPS to the deepest slope
+            uint8_t    currentHeight = height;
+            glm::ivec2 currentPos{x, z};
+            for (int i = 0; i < MAX_STEPS; i++)
+            {
+                bool foundPaths = false;
+                // compare all neighbors
+                for (int dz = -1; dz <= 1; dz++)
+                {
+                    for (int dx = -1; dx <= 1; dx++)
+                    {
+                        if (dx == 0 and dz == 0)
+                            continue; // skip center
+                        int nx = dx + x;
+                        int nz = dz + z;
+                        if (nx < 0 or nx >= CHUNK_SIZE or nz < 0 or nx >= CHUNK_SIZE)
+                            continue; // skip invalid cells
+
+                        if (myXZHeightMap[nx + nz * CHUNK_SIZE] < currentHeight)
+                        {
+                            foundPaths    = true;
+                            currentHeight = myXZHeightMap[nx + nz * CHUNK_SIZE];
+                            currentPos    = glm::vec2(nx, nz);
+                        }
+                    }
+                }
+                if (!foundPaths)
+                    break; // continue to next x cell
+            }
+
+            // we found a slope
+            if (currentPos.x != x and currentPos.y != z)
+            {
+                myXZFDASlopeMap[x + z * CHUNK_SIZE] = (glm::vec2) currentPos - glm::vec2(x, z);
+            }
+        }
+    }
+}
+
 void PhysicsEngine::CreateSlopeMap()
 {
     constexpr int R   = 8;
@@ -156,11 +215,13 @@ void PhysicsEngine::CreateSlopeMap()
     // the padded edge around the chunk border will maintain the borders value,
     // causing no height difference and falling off slope
     uint8_t padded[PAD * PAD] = {};
-    for(int z=0; z<PAD; z++){
-        for(int x=0; x<PAD; x++){
-            int cx=std::clamp(x - R, 0, CHUNK_SIZE-1);
-            int cz=std::clamp(z - R, 0, CHUNK_SIZE-1);
-            padded[z * PAD + x] = myXZHeightMap[cx + cz*CHUNK_SIZE];
+    for (int z = 0; z < PAD; z++)
+    {
+        for (int x = 0; x < PAD; x++)
+        {
+            int cx              = std::clamp(x - R, 0, CHUNK_SIZE - 1);
+            int cz              = std::clamp(z - R, 0, CHUNK_SIZE - 1);
+            padded[z * PAD + x] = myXZHeightMap[cx + cz * CHUNK_SIZE];
         }
     }
 
@@ -191,18 +252,18 @@ void PhysicsEngine::CreateSlopeMap()
                 for (int x = 0; x < CHUNK_SIZE; x++)
                 {
                     uint8_t diff = center[x] > neighbor[x] ? center[x] - neighbor[x] : 0;
-                    accumX[baseIndex + x] += dx*diff;
-                    accumZ[baseIndex + x] += dz*diff;
-                    count[baseIndex+x] += diff > 0 ;
+                    accumX[baseIndex + x] += dx * diff;
+                    accumZ[baseIndex + x] += dz * diff;
+                    count[baseIndex + x] += diff > 0;
                 }
             }
         }
     }
 
     // calculate slopes after
-    for(int i=0; i<CHUNK_SIZE*CHUNK_SIZE; i++){
-        myXZSlopeMap[i] = count[i] > 0 
-            ? glm::vec2((float)accumX[i] / count[i], (float)accumZ[i] / count[i])
-            : glm::vec2(0.0f);
+    for (int i = 0; i < CHUNK_SIZE * CHUNK_SIZE; i++)
+    {
+        myXZSlopeMap[i] =
+            count[i] > 0 ? glm::vec2((float) accumX[i] / count[i], (float) accumZ[i] / count[i]) : glm::vec2(0.0f);
     }
 }

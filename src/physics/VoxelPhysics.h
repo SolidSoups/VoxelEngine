@@ -15,6 +15,7 @@ struct VoxelContext
     const glm::ivec3 gridPos;
     const uint8_t* xzSurfaceHeightMap;
     const glm::vec2* xzSurfaceSlopeMap;
+    const glm::vec2* xzFDASlopeMap;
 };
 
 bool SinkThroughWater(const VoxelContext &ctx);

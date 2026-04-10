@@ -30,10 +30,13 @@ class PhysicsEngine
   private:
     void CreateHeightMap(const VoxelChunkViews& someViews);
     void CreateSlopeMap();
+    void CreateSlopeMap_fda_d8();
+    glm::vec2 FDAFindSteepestSlope(int x, int z, int maxSteps);
   private:
     uint32_t     myFrameCounter = 0;
     Scene       &myScene;
     VoxelBitset *xyMovedVoxels;
     uint8_t    *myXZHeightMap = nullptr;
     glm::vec2  *myXZSlopeMap  = nullptr;
+    glm::vec2 *myXZFDASlopeMap = nullptr;
 };

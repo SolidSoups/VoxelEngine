@@ -87,18 +87,18 @@ bool SurfaceWaterSpread(const VoxelContext &ctx)
     // Spread torwards deeper slopes. If no slopes exist, clump together torwards
     // the center of mass.
     glm::vec2 dir = ctx.xzSurfaceSlopeMap[ctx.gridPos.x + ctx.gridPos.z * CHUNK_SIZE];
-    if (dir.x == 0 and dir.y == 0)
+    glm::vec2 fdaDir = ctx.xzFDASlopeMap[ctx.gridPos.x + ctx.gridPos.z * CHUNK_SIZE];
+    if (fdaDir.x == 0 and fdaDir.y == 0)
         return false;
-    //     dir = CalcCenterOfMass(ctx);
 
     // Pick dominant axis
     size_t chosenIdx;
-    if (!PickTargetFromDir(ctx, dir, chosenIdx))
+    if (!PickTargetFromDir(ctx, fdaDir, chosenIdx))
     {
         return false;
     }
 
-    // ensure that the chosen position actually allows us to fall down
+    // // ensure that the chosen position actually allows us to fall down
     int myHeight = ctx.xzSurfaceHeightMap[ctx.gridPos.x + ctx.gridPos.z * CHUNK_SIZE];
     int nx = chosenIdx % CHUNK_SIZE;
     int nz = chosenIdx / (CHUNK_SIZE * CHUNK_SIZE);
