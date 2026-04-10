@@ -115,4 +115,4 @@ target_precompile_headers(voxel_engine
 
     <string>
 )
-target_compile_options(voxel_engine PRIVATE -g)
+target_compile_options(voxel_engine PRIVATE -g -mlzcnt -O2 -march=native)

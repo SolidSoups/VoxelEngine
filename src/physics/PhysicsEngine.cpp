@@ -1,5 +1,7 @@
 #include "physics/PhysicsEngine.h"
 
+#include <immintrin.h>
+
 #include <glm/glm.hpp>
 #include "voxel/VoxelChunk.h"
 #include "rendering/Scene.h"
@@ -137,65 +139,70 @@ PhysicsDebugData PhysicsEngine::GetDebugData() const
 
 void PhysicsEngine::CreateHeightMap(const VoxelChunkViews &someViews)
 {
-    for (int z = 0; z < CHUNK_SIZE; z++)
+    for (int i = 0; i < CHUNK_SIZE * CHUNK_SIZE; i += 2)
     {
-        for (int x = 0; x < CHUNK_SIZE; x++)
-        {
-            VoxelBitset column = someViews.xzOccupancy[x + z * CHUNK_SIZE];
-            if (column == 0) // no bits in this column
-            {
-                myXZHeightMap[x + z * CHUNK_SIZE] = 0;
-                continue;
-            }
-
-            int totalHeight = column == 0 ? 0 : (CHUNK_SIZE - std::countl_zero(column));
-
-            // find the lowest water voxel from the top
-            myXZHeightMap[x + z * CHUNK_SIZE] = totalHeight;
-        }
+        // calc height map
+        myXZHeightMap[i]     = CHUNK_SIZE - _lzcnt_u64(someViews.xzOccupancy[i]);
+        myXZHeightMap[i + 1] = CHUNK_SIZE - _lzcnt_u64(someViews.xzOccupancy[i + 1]);
     }
 }
 
 void PhysicsEngine::CreateSlopeMap()
 {
-    // radius excluding center, ie would span a 3x3 grid
-    constexpr int SAMPLE_RADIUS = 4;
-    constexpr int TOTAL_SAMPLES = (SAMPLE_RADIUS * 2 + 1) * (SAMPLE_RADIUS * 2 + 1);
+    constexpr int R   = 8;
+    constexpr int PAD = CHUNK_SIZE + R * 2;
 
-    for (int z = 0; z < CHUNK_SIZE; z++)
+    // padded height map. used to avoid branching on invalid voxel positions
+    // the padded edge around the chunk border will maintain the borders value,
+    // causing no height difference and falling off slope
+    uint8_t padded[PAD * PAD] = {};
+    for(int z=0; z<PAD; z++){
+        for(int x=0; x<PAD; x++){
+            int cx=std::clamp(x - R, 0, CHUNK_SIZE-1);
+            int cz=std::clamp(z - R, 0, CHUNK_SIZE-1);
+            padded[z * PAD + x] = myXZHeightMap[cx + cz*CHUNK_SIZE];
+        }
+    }
+
+    // for a 9x9, minus the center, we have 80 samples.
+    //
+    int16_t accumX[CHUNK_SIZE * CHUNK_SIZE] = {};
+    int16_t accumZ[CHUNK_SIZE * CHUNK_SIZE] = {};
+    int16_t count[CHUNK_SIZE * CHUNK_SIZE]  = {};
+
+    // For each eighbor offset...
+    for (int dz = -R; dz <= R; dz++)
     {
-        for (int x = 0; x < CHUNK_SIZE; x++)
+        for (int dx = -R; dx <= R; dx++)
         {
-            uint8_t columnHeight = myXZHeightMap[x + z * CHUNK_SIZE];
+            // ... accumulate their contribution
+            if (dx == 0 and dz == 0)
+                continue;
 
-            // sample neighbouring cells for their height, pick the lowest one
-            int slopeX = 0, slopeZ = 0, count = 0;
-            for (int dz = -SAMPLE_RADIUS; dz <= SAMPLE_RADIUS; dz++)
+            for (int z = 0; z < CHUNK_SIZE; z++)
             {
-                for (int dx = -SAMPLE_RADIUS; dx <= SAMPLE_RADIUS; dx++)
+                // get the center and neigbor heights from the padded buffer
+                const uint8_t *center    = &padded[(z + R) * PAD + R];
+                const uint8_t *neighbor  = &padded[(z + R + dz) * PAD + R + dx];
+                int            baseIndex = z * CHUNK_SIZE;
+
+                // accumulate contributon with auto-vectorization optmized flow
+                // no branches, linear memory access
+                for (int x = 0; x < CHUNK_SIZE; x++)
                 {
-                    if (dx == 0 and dz == 0)
-                        continue; // skip center cell
-
-                    int  nx      = x + dx;
-                    int  nz      = z + dz;
-                    bool invalid = (nx < 0 or nx >= CHUNK_SIZE or nz < 0 or nz >= CHUNK_SIZE);
-                    if (invalid)
-                        continue;
-                    uint8_t neighbourHeight = invalid ? 0 : myXZHeightMap[nx + nz * CHUNK_SIZE];
-
-                    int heightDiff = std::max(0, columnHeight - neighbourHeight);
-                    slopeX += dx * heightDiff;
-                    slopeZ += dz * heightDiff;
-                    count++;
+                    uint8_t diff = center[x] > neighbor[x] ? center[x] - neighbor[x] : 0;
+                    accumX[baseIndex + x] += dx*diff;
+                    accumZ[baseIndex + x] += dz*diff;
+                    count[baseIndex+x] += diff > 0 ;
                 }
             }
-
-            // store slope direction
-            if (count > 0)
-                myXZSlopeMap[x + z * CHUNK_SIZE] = glm::vec2((float) slopeX / count, (float) slopeZ / count);
-            else
-                myXZSlopeMap[x + z * CHUNK_SIZE] = glm::vec2(0.0f);
         }
+    }
+
+    // calculate slopes after
+    for(int i=0; i<CHUNK_SIZE*CHUNK_SIZE; i++){
+        myXZSlopeMap[i] = count[i] > 0 
+            ? glm::vec2((float)accumX[i] / count[i], (float)accumZ[i] / count[i])
+            : glm::vec2(0.0f);
     }
 }
