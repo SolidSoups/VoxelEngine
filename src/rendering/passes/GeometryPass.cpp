@@ -39,7 +39,15 @@ void GeometryPass::Execute(RenderpassInfo &someInfo)
     myShader->setMatrix4("uProjection", someInfo.camera.GetProjectionMatrix());
 
     // enable debug here
-    if(someInfo.debugMode != DebugMode::None){
+    if(someInfo.debugMode == DebugMode::ActionMap){
+        myShader->setInt("uDebugMode", (int)DebugMode::ActionMap);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_3D, someInfo.debugTexture);
+        myShader->setInt("uActionTex", 2);
+        myShader->setFloat("uChunkWidth", 4.0f);
+        myShader->setInt("uChunkSize", CHUNK_SIZE);
+    }
+    else if(someInfo.debugMode != DebugMode::None){
         myShader->setInt("uDebugMode", (int)someInfo.debugMode);
 
         // bind debug texture

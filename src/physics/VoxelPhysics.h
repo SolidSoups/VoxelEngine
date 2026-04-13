@@ -5,6 +5,15 @@
 
 struct VoxelChunk;
 
+enum class VoxelAction : uint8_t {
+    None = 0,
+    FallDown = 1,
+    FallDiagonally = 2,
+    SpreadH = 3,
+    SurfaceSpread = 4,
+    SinkThruWater = 5
+};
+
 struct VoxelContext
 {
     VoxelChunk       &dst;
@@ -16,6 +25,7 @@ struct VoxelContext
     const uint8_t* xzSurfaceHeightMap;
     const glm::vec2* xzSurfaceSlopeMap;
     const glm::vec2* xzFDASlopeMap;
+    uint8_t *actionMap;
 };
 
 bool SinkThroughWater(const VoxelContext &ctx);
@@ -33,3 +43,5 @@ glm::vec2 CalcCenterOfMass(const VoxelContext &ctx, int aRadius=2);
 glm::vec2 CalcSlopeDirection(const VoxelContext &ctx, int aRadius=2);
 
 bool PickTargetFromDir(const VoxelContext& ctx, const glm::vec2& aDir, size_t &outCandidate);
+
+glm::vec2 CalcSlope_FDA_D8(const VoxelContext& ctx, int aMaxSteps=2);

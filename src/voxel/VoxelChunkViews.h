@@ -68,17 +68,16 @@ struct VoxelChunkViews
         memset(xzIsolatedVoxels, 0, SliceBytes * VOXEL_TYPES);
         memset(xyIsolatedVoxels, 0, SliceBytes * VOXEL_TYPES);
 
-        size_t width = aChunk.GetWidth();
-        for (int i = 0; i < width * width * width; i++)
+        for (int i = 0; i < CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE; i++)
         {
             VoxelType type = (VoxelType) aChunk[i];
             if (type == VoxelType_EMPTY)
                 continue;
 
             // get coordinates
-            int x = i % width;
-            int y = (i / width) % width;
-            int z = i / (width * width);
+            int x = i % CHUNK_SIZE;
+            int y = (i / CHUNK_SIZE) % CHUNK_SIZE;
+            int z = i / (CHUNK_SIZE * CHUNK_SIZE);
 
             // set cell to occupied
             zyOccupancy[z + y * CHUNK_SIZE] |= (VoxelBitset(1) << x);

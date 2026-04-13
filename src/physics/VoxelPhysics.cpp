@@ -1,5 +1,6 @@
 #include "VoxelPhysics.h"
 #include "../voxel/VoxelChunk.h"
+#include <cstdint>
 
 bool SinkThroughWater(const VoxelContext &ctx)
 {
@@ -12,8 +13,9 @@ bool SinkThroughWater(const VoxelContext &ctx)
         return false;
 
     // swap them in the dst
-    ctx.dst[ctx.index]  = VoxelType_WATER;
-    ctx.dst[indexUnder] = VoxelType_SAND;
+    ctx.dst[ctx.index]        = VoxelType_WATER;
+    ctx.dst[indexUnder]       = VoxelType_SAND;
+    ctx.actionMap[indexUnder] = (uint8_t) VoxelAction::SinkThruWater;
 
     return true;
 }
@@ -30,8 +32,9 @@ bool FallDown(const VoxelContext &ctx)
         return false;
 
     // swap this voxel with the one under in the dst
-    ctx.dst[ctx.index]  = ctx.dst[indexUnder];
-    ctx.dst[indexUnder] = ctx.voxel;
+    ctx.dst[ctx.index]        = ctx.dst[indexUnder];
+    ctx.dst[indexUnder]       = ctx.voxel;
+    ctx.actionMap[indexUnder] = (uint8_t) VoxelAction::FallDown;
     return true;
 }
 
@@ -46,8 +49,9 @@ bool FallDiagonally(const VoxelContext &ctx)
         return false;
 
     // swap
-    ctx.dst[ctx.index] = ctx.dst[chosen];
-    ctx.dst[chosen]    = ctx.voxel;
+    ctx.dst[ctx.index]    = ctx.dst[chosen];
+    ctx.dst[chosen]       = ctx.voxel;
+    ctx.actionMap[chosen] = (uint8_t) VoxelAction::FallDiagonally;
 
     return true;
 }
@@ -70,8 +74,10 @@ bool SpreadHorizontally(const VoxelContext &ctx)
     {
         return false;
     }
-    ctx.dst[ctx.index] = ctx.dst[chosen];
-    ctx.dst[chosen]    = ctx.voxel;
+    ctx.dst[ctx.index]    = ctx.dst[chosen];
+    ctx.dst[chosen]       = ctx.voxel;
+    ctx.actionMap[chosen] = (uint8_t) VoxelAction::SpreadH;
+
     return true;
 }
 
@@ -86,7 +92,7 @@ bool SurfaceWaterSpread(const VoxelContext &ctx)
 
     // Spread torwards deeper slopes. If no slopes exist, clump together torwards
     // the center of mass.
-    glm::vec2 dir = ctx.xzSurfaceSlopeMap[ctx.gridPos.x + ctx.gridPos.z * CHUNK_SIZE];
+    glm::vec2 dir    = ctx.xzSurfaceSlopeMap[ctx.gridPos.x + ctx.gridPos.z * CHUNK_SIZE];
     glm::vec2 fdaDir = ctx.xzFDASlopeMap[ctx.gridPos.x + ctx.gridPos.z * CHUNK_SIZE];
     if (fdaDir.x == 0 and fdaDir.y == 0)
         return false;
@@ -99,18 +105,19 @@ bool SurfaceWaterSpread(const VoxelContext &ctx)
     }
 
     // // ensure that the chosen position actually allows us to fall down
-    int myHeight = ctx.xzSurfaceHeightMap[ctx.gridPos.x + ctx.gridPos.z * CHUNK_SIZE];
-    int nx = chosenIdx % CHUNK_SIZE;
-    int nz = chosenIdx / (CHUNK_SIZE * CHUNK_SIZE);
+    int     myHeight        = ctx.xzSurfaceHeightMap[ctx.gridPos.x + ctx.gridPos.z * CHUNK_SIZE];
+    int     nx              = chosenIdx % CHUNK_SIZE;
+    int     nz              = chosenIdx / (CHUNK_SIZE * CHUNK_SIZE);
     uint8_t neighbourHeight = ctx.xzSurfaceHeightMap[nx + nz * CHUNK_SIZE];
-    int diff = myHeight - neighbourHeight;
-    if(diff <= 0)
+    int     diff            = myHeight - neighbourHeight;
+    if (diff <= 0)
         return false;
 
-
     // swap with chosen in dst buffer
-    ctx.dst[ctx.index] = ctx.dst[chosenIdx];
-    ctx.dst[chosenIdx]    = ctx.voxel;
+    ctx.dst[ctx.index]       = ctx.dst[chosenIdx];
+    ctx.dst[chosenIdx]       = ctx.voxel;
+    ctx.actionMap[chosenIdx] = (uint8_t) VoxelAction::SurfaceSpread;
+
     return true;
 }
 
@@ -311,4 +318,33 @@ glm::vec2 CalcSlopeDirection(const VoxelContext &ctx, int aRadius)
     int       diam = aRadius * 2 + 1;
     glm::vec2 slopeDir{(float) slopeX / diam, (float) slopeZ / diam};
     return slopeDir;
+}
+
+glm::vec2 CalcSlope_FDA_D8(const VoxelContext &ctx, int aMaxSteps)
+{
+    uint8_t height = ctx.gridPos.y;
+    if (height <= 0)
+        return glm::vec2(0.0f);
+
+    // Goal: Find a path of length aMaxSteps to the deepest slope
+    uint8_t    currentHeight = height;
+    glm::ivec2 currentPos{ctx.gridPos.x, ctx.gridPos.z};
+    for (int i = 0; i < aMaxSteps; i++)
+    {
+        bool foundAPath = false;
+
+        // for every 8 neighbors
+        for (int dz = -1; dz <= 1; dz++)
+        {
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                // skip center
+                if(dx == 0 and dz == 0)
+                    continue; 
+
+                // int nx = 
+            }
+        }
+    }
+    return {};
 }

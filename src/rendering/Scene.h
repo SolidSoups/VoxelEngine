@@ -49,6 +49,9 @@ class Scene
     {
         return myChunkMesher.latestStats;
     }
+    inline void RebuildViews() {
+        myChunkViews.BuildFrom(myVoxelChunk);
+    }
 
     bool toggleWireframe = false;
 

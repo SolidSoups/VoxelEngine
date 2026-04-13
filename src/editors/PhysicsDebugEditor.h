@@ -7,13 +7,13 @@ class PhysicsEngine;
 
 class PhysicsDebugEditor : public Editor
 {
-public:
+  public:
     PhysicsDebugEditor(PhysicsEngine &aEngine);
     ~PhysicsDebugEditor();
 
     void Draw() override;
 
-private:
+  private:
     void CreateTextures();
     void UpdateTextures();
 
@@ -23,5 +23,7 @@ private:
 
     unsigned int myHeightMapTex = 0;
     unsigned int mySlopeMapTex  = 0;
+    unsigned int myFDASlopeMapTex = 0;
     unsigned int myMovedTex     = 0;
+    unsigned int myActionMapTex    = 0;
 };
