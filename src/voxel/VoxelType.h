@@ -44,3 +44,12 @@ inline VoxelIndex getVoxelIndex(const glm::ivec3 &aGridPosition)
 {
     return aGridPosition.x + aGridPosition.y * CHUNK_SIZE + aGridPosition.z * CHUNK_SIZE * CHUNK_SIZE;
 }
+inline bool isOutOfBounds(const glm::ivec3& aGridPosition){
+    return aGridPosition.x < 0 or aGridPosition.x >= CHUNK_SIZE or
+    aGridPosition.y < 0 or aGridPosition.y >= CHUNK_SIZE or
+    aGridPosition.z < 0 or aGridPosition.z >= CHUNK_SIZE;
+}
+inline bool isOutOfBounds(const glm::ivec2& aGridPosition){
+    return aGridPosition.x < 0 or aGridPosition.x >= CHUNK_SIZE or
+    aGridPosition.y < 0 or aGridPosition.y >= CHUNK_SIZE;
+}

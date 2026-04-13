@@ -144,23 +144,23 @@ void PhysicsDebugEditor::UpdateTextures()
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    // make 'movement' texture
-    {
-        static uint8_t pixels[TEX_SIZE * TEX_SIZE];
-        for (int z = 0; z < TEX_SIZE; z++)
-        {
-            for (int x = 0; x < TEX_SIZE; x++)
-            {
-                VoxelBitset bits         = data.movedVoxels[x + z * TEX_SIZE];
-                int         count        = std::popcount(bits);
-                pixels[x + z * TEX_SIZE] = (uint8_t) std::min(count * 64, 255);
-            }
-        }
-
-        glBindTexture(GL_TEXTURE_2D, myMovedTex);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, TEX_SIZE, TEX_SIZE, GL_RED, GL_UNSIGNED_BYTE, pixels);
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
+    // // make 'movement' texture
+    // {
+    //     static uint8_t pixels[TEX_SIZE * TEX_SIZE];
+    //     for (int z = 0; z < TEX_SIZE; z++)
+    //     {
+    //         for (int x = 0; x < TEX_SIZE; x++)
+    //         {
+    //             VoxelBitset bits         = data.movedVoxels[x + z * TEX_SIZE];
+    //             int         count        = std::popcount(bits);
+    //             pixels[x + z * TEX_SIZE] = (uint8_t) std::min(count * 64, 255);
+    //         }
+    //     }
+    //
+    //     glBindTexture(GL_TEXTURE_2D, myMovedTex);
+    //     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, TEX_SIZE, TEX_SIZE, GL_RED, GL_UNSIGNED_BYTE, pixels);
+    //     glBindTexture(GL_TEXTURE_2D, 0);
+    // }
 
     // upload action map data
     glBindTexture(GL_TEXTURE_3D, myActionMapTex);

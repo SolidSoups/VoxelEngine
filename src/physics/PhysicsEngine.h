@@ -2,6 +2,8 @@
 
 #include <glm/vec2.hpp>
 #include "voxel/VoxelType.h"
+#include "solvers/WaterSolver.h"
+#include "solvers/SandSolver.h"
 
 struct VoxelChunk;
 struct VoxelChunkViews;
@@ -11,7 +13,6 @@ class Scene;
 struct PhysicsDebugData {
     const uint8_t    *heightMap;
     const glm::vec2  *slopeMap;
-    const VoxelBitset *movedVoxels;
     const uint8_t *actionMap;
     const glm::vec2 *fdaSlopeMap;
 };
@@ -24,7 +25,6 @@ class PhysicsEngine
 
   public:
     void SimulateChunk();
-    bool SimulateSand(const VoxelContext &ctx);
     bool SimulateWater(const VoxelContext &ctx);
 
     PhysicsDebugData GetDebugData() const;
@@ -32,10 +32,8 @@ class PhysicsEngine
   private:
     void CreateHeightMap(const VoxelChunkViews& someViews);
     void CreateSlopeMap();
-    void CreateSlopeMap_fda_d8(const VoxelBitset* xzOccupancy);
-    glm::vec2 FDAFindSteepestSlope(int x, int z, int maxSteps);
-    // Returns the final height of simulating FDA D8 steps from a point
-    int FDASimulateSteps(int x, int z, int height, const VoxelBitset* xzOccupancy,int maxSteps = 5);
+    void CreateBFSSlopeMap();
+    glm::ivec2 BreadthFirstSearchSink(int x, int z);
   private:
     uint32_t     myFrameCounter = 0;
     Scene       &myScene;
@@ -44,4 +42,10 @@ class PhysicsEngine
     glm::vec2  *myXZSlopeMap  = nullptr;
     glm::vec2 *myXZFDASlopeMap = nullptr;
     uint8_t *myActionMap = nullptr;
+
+    glm::vec2 *myXZBFSSlopeMap = nullptr;
+
+private:
+    SandSolver mySandSolver;
+    WaterSolver myWaterSolver;
 };

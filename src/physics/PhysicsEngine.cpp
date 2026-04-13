@@ -1,31 +1,28 @@
 #include "physics/PhysicsEngine.h"
 
+#include <algorithm>
 #include <immintrin.h>
 
 #include <glm/glm.hpp>
-#include <print>
 #include "voxel/VoxelChunk.h"
 #include "rendering/Scene.h"
 #include "voxel/VoxelChunkViews.h"
 #include "voxel/VoxelType.h"
-
-#include "VoxelPhysics.h"
+#include "VoxelContext.h"
 
 PhysicsEngine::PhysicsEngine(Scene &aScene) : myScene(aScene)
 {
-    xyMovedVoxels   = new VoxelBitset[CHUNK_SIZE * CHUNK_SIZE]();
     myXZHeightMap   = new uint8_t[CHUNK_SIZE * CHUNK_SIZE]();
     myXZSlopeMap    = new glm::vec2[CHUNK_SIZE * CHUNK_SIZE]();
-    myXZFDASlopeMap = new glm::vec2[CHUNK_SIZE * CHUNK_SIZE]();
+    myXZBFSSlopeMap = new glm::vec2[CHUNK_SIZE * CHUNK_SIZE]();
     myActionMap     = new uint8_t[CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE]();
 }
 PhysicsEngine::~PhysicsEngine()
 {
-    delete[] xyMovedVoxels;
     delete[] myXZHeightMap;
     delete[] myXZSlopeMap;
-    delete[] myXZFDASlopeMap;
     delete[] myActionMap;
+    delete[] myXZBFSSlopeMap;
 }
 
 void PhysicsEngine::SimulateChunk()
@@ -37,9 +34,6 @@ void PhysicsEngine::SimulateChunk()
     bool reverseX       = (myFrameCounter / 2) % 2;
     bool somethingMoved = false;
 
-    // clear moved voxels
-    memset(xyMovedVoxels, 0, CHUNK_SIZE * CHUNK_SIZE * sizeof(VoxelBitset));
-
     // create src and dst
     const VoxelChunk &src       = myScene.GetVoxelChunk();
     const VoxelIndex  chunkSize = src.GetWidth();
@@ -47,7 +41,7 @@ void PhysicsEngine::SimulateChunk()
 
     CreateHeightMap(myScene.GetChunkViews());
     CreateSlopeMap();
-    CreateSlopeMap_fda_d8(myScene.GetChunkViews().xzOccupancy);
+    CreateBFSSlopeMap();
 
     // clear the action map
     memset(myActionMap, 0, CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE);
@@ -77,23 +71,22 @@ void PhysicsEngine::SimulateChunk()
                                  .gridPos            = getVoxelGridPosition(index),
                                  .xzSurfaceHeightMap = myXZHeightMap,
                                  .xzSurfaceSlopeMap  = myXZSlopeMap,
-                                 .xzFDASlopeMap      = myXZFDASlopeMap,
+                                 .xzBFSSlopeMap      = myXZBFSSlopeMap,
                                  .actionMap          = myActionMap};
 
                 // Simulate voxels
                 switch (ctx.voxel)
                 {
                 case (VoxelType_SAND):
-                    if (SimulateSand(ctx))
+                    if (mySandSolver.Solve(ctx))
                     {
                         somethingMoved = true;
                     }
                     break;
                 case (VoxelType_WATER):
-                    if (SimulateWater(ctx))
+                    if (myWaterSolver.Solve(ctx))
                     {
                         somethingMoved = true;
-                        xyMovedVoxels[x + z * CHUNK_SIZE] |= (VoxelBitset(1) << y);
                     }
                     break;
                 }
@@ -107,57 +100,12 @@ void PhysicsEngine::SimulateChunk()
     myScene.CopyChunk(dst);
     myScene.RebuildViews();
     CreateHeightMap(myScene.GetChunkViews());
-    CreateSlopeMap_fda_d8(myScene.GetChunkViews().xzOccupancy);
-}
-
-bool PhysicsEngine::SimulateSand(const VoxelContext &ctx)
-{
-    // Fall through empty
-    if (FallDown(ctx))
-    {
-        return true;
-    }
-
-    // Sink through water
-    if (SinkThroughWater(ctx))
-        return true;
-
-    return FallDiagonally(ctx);
-}
-
-bool PhysicsEngine::SimulateWater(const VoxelContext &ctx)
-{
-    if (FallDown(ctx))
-        return true;
-
-    // check pressure (the amount of water blocks above), prioritize
-    // spreading horizontally if covered
-    bool underPressure = ctx.gridPos.y < CHUNK_SIZE - 1 and ctx.dst[ctx.index + CHUNK_SIZE] == VoxelType_WATER;
-    if (underPressure)
-    {
-        if (SpreadHorizontally(ctx))
-            return true;
-        return FallDiagonally(ctx);
-    }
-
-    // surface water, fall diagonally first, then spread
-    if (FallDiagonally(ctx))
-        return true;
-
-    bool isBlockUnder = ctx.gridPos.y > 0 and ctx.dst[ctx.index - CHUNK_SIZE] != VoxelType_EMPTY;
-    bool isBlockAbove = ctx.gridPos.y < CHUNK_SIZE - 1 and ctx.dst[ctx.index + CHUNK_SIZE] != VoxelType_EMPTY;
-    if (isBlockUnder and not isBlockAbove)
-    {
-        if (SurfaceWaterSpread(ctx))
-            return true;
-    }
-
-    return SpreadHorizontally(ctx);
+    CreateBFSSlopeMap();
 }
 
 PhysicsDebugData PhysicsEngine::GetDebugData() const
 {
-    return {myXZHeightMap, myXZSlopeMap, xyMovedVoxels, myActionMap, myXZFDASlopeMap};
+    return {myXZHeightMap, myXZSlopeMap, myActionMap, myXZBFSSlopeMap};
 }
 
 void PhysicsEngine::CreateHeightMap(const VoxelChunkViews &someViews)
@@ -170,136 +118,123 @@ void PhysicsEngine::CreateHeightMap(const VoxelChunkViews &someViews)
     }
 }
 
-void PhysicsEngine::CreateSlopeMap_fda_d8(const VoxelBitset *xzOccupancy)
+void PhysicsEngine::CreateBFSSlopeMap()
 {
     static int frameCounter = 0;
     frameCounter++;
-    constexpr int MAX_STEPS = 10;
-
-    // perform FDA for every cell
-    for (int z = 0; z < CHUNK_SIZE; z++)
+    size_t size = CHUNK_SIZE * CHUNK_SIZE;
+    for (size_t ii = 0; ii < size; ii++)
     {
-        for (int x = 0; x < CHUNK_SIZE; x++)
-        {
-
-            uint8_t cellHeight = CHUNK_SIZE - (uint8_t) _lzcnt_u64(xzOccupancy[x + z * CHUNK_SIZE]);
-            if (cellHeight <= 1)
-            {
-                myXZFDASlopeMap[x + z * CHUNK_SIZE] = glm::vec2(0);
-                continue;
-            }
-
-            // find the neighbor which FDA D8 path leads to the lowest point
-            uint8_t    bestFinalHeight = cellHeight;
-            glm::ivec2 bestFirstStep{x, z};
-            for (int deltaZ = -1; deltaZ <= 1; deltaZ++)
-            {
-                for (int deltaX = -1; deltaX <= 1; deltaX++)
-                {
-                    // skip center
-                    if (deltaX == 0 and deltaZ == 0)
-                        continue;
-
-                    int neighborX = x + deltaX;
-                    int neighborZ = z + deltaZ;
-                    if (neighborX < 0 or neighborX >= CHUNK_SIZE or neighborZ < 0 or neighborZ >= CHUNK_SIZE)
-                    {
-                        continue; // neighbors don't exist out of bounds
-                    }
-
-                    // we must be able to move there,
-                    // if heights are equal it is filled
-                    uint8_t neighborHeight = CHUNK_SIZE - (uint8_t) _lzcnt_u64(xzOccupancy[neighborX + neighborZ * CHUNK_SIZE]);
-                    if (bestFinalHeight > neighborHeight)
-                    {
-                        bestFinalHeight = neighborHeight;
-                        bestFirstStep = {neighborX, neighborZ};
-                    }
-
-                    // // We need to be able to reach the neighbor, even if it is a corner and we need to go through
-                    // // a couple of steps
-                    // bool neighborIsCorner = deltaX != 0 and deltaZ != 0;
-                    // if (neighborIsCorner)
-                    // {
-                    //     int  centerXHeight       = CHUNK_SIZE - _lzcnt_u64(xzOccupancy[x + neighborZ * CHUNK_SIZE]);
-                    //     int  centerZHeight       = CHUNK_SIZE - _lzcnt_u64(xzOccupancy[neighborX + z * CHUNK_SIZE]);
-                    //     bool neighborIsReachable = (centerXHeight < cellHeight and
-                    //                                 neighborHeight <= centerXHeight) or // full height path from centerX
-                    //                                (centerZHeight < cellHeight and
-                    //                                 neighborHeight <= centerZHeight); // full height path from centerZ
-                    //     if (not neighborIsReachable)
-                    //     {
-                    //         continue;
-                    //     }
-                    // }
-
-                    // simulate remaining steps from this first step
-                    int lowestHeight = FDASimulateSteps(neighborX, neighborZ, neighborHeight, xzOccupancy, MAX_STEPS);
-                    if (lowestHeight < bestFinalHeight)
-                    {
-                        bestFinalHeight = lowestHeight;
-                        bestFirstStep   = {neighborX, neighborZ};
-                    }
-                }
-            }
-
-            // slope is 0 if we didnt move at all
-            if ((bestFirstStep.x == x and bestFirstStep.y == z) or bestFinalHeight >= cellHeight-1)
-                myXZFDASlopeMap[x + z * CHUNK_SIZE] = glm::vec2(0.f);
-            // set slope if we did
-            else
-                myXZFDASlopeMap[x + z * CHUNK_SIZE] = (glm::vec2) bestFirstStep - glm::vec2(x, z);
-        }
+        size_t i = frameCounter % 2 == 0 ? ii : size-1 - ii;
+        int        x             = i % CHUNK_SIZE;
+        int        z             = (i / CHUNK_SIZE) % CHUNK_SIZE;
+        glm::ivec2 slopeNeighbor = BreadthFirstSearchSink(x, z);
+        myXZBFSSlopeMap[i]       = slopeNeighbor;
     }
 }
 
-int PhysicsEngine::FDASimulateSteps(int x, int z, int height, const VoxelBitset *xzOccupancy, int maxSteps)
+glm::ivec2 PhysicsEngine::BreadthFirstSearchSink(int x, int z)
 {
-    uint8_t y = height - 1;
-
-    uint8_t    walkHeight = height;
-    glm::ivec2 walkPosition{x, z};
-    for (int step = 1; step < maxSteps; step++)
+    static int frameCounter = 0;
+    frameCounter++;
+     
+    struct Node
     {
-        bool       hasMoved     = false;
-        uint8_t    centerHeight = walkHeight;
-        glm::ivec2 centerPos    = walkPosition;
-        for (int deltaZ = -1; deltaZ <= 1; deltaZ++)
+        glm::ivec2 position;
+        glm::ivec2 firstStepTag;
+    };
+    constexpr int MAX_RADIUS = 10;
+    constexpr int    MAX_QUEUE = (2 * MAX_RADIUS + 1) * (2 * MAX_RADIUS + 1); // radius squared
+    Node queue[MAX_QUEUE];
+    int queueHead = 0, queueTail = 0;
+    bool             visited[CHUNK_SIZE * CHUNK_SIZE]{};
+    uint8_t          startingHeight = myXZHeightMap[x + z * CHUNK_SIZE];
+
+    // enqueue all neighbors directly next to starting position
+    for (int ddz = -1; ddz <= 1; ddz++)
+    {
+        int dz = frameCounter % 2 == 0 ? ddz : -ddz;
+        for (int ddx = -1; ddx <= 1; ddx++)
         {
-            for (int deltaX = -1; deltaX <= 1; deltaX++)
+            int dx = frameCounter % 2 != 0 ? ddx : -ddx;
+            if (dx == 0 and dz == 0)
+                continue; // skip center
+
+            glm::ivec2 neighborPos = glm::ivec2(x + dx, z + dz);
+
+            if (isOutOfBounds(neighborPos))
+                continue;
+            uint8_t neighborHeight = myXZHeightMap[neighborPos.x + neighborPos.y * CHUNK_SIZE];
+
+            // only add traversable neighbors as explorable options
+            if (neighborHeight >= startingHeight)
+                continue;
+
+            // is this a sink?
+            if (neighborHeight < startingHeight - 1)
+                return glm::ivec2(dx, dz);
+
+            // add as initial node
+            queue[queueTail++ % MAX_QUEUE] = {neighborPos, glm::ivec2(dx, dz)};
+            visited[neighborPos.x + neighborPos.y * CHUNK_SIZE] = true;
+        }
+    }
+
+    while (queueHead != queueTail)
+    {
+        Node node = queue[queueHead++ % MAX_QUEUE];
+
+        // for every neighbor node...
+        for (int ddz = -1; ddz <= 1; ddz++)
+        {
+            int dz = frameCounter % 2 != 0 ? ddz : -ddz;
+            for (int ddx = -1; ddx <= 1; ddx++)
             {
-
-                // skip center
-                if (deltaX == 0 and deltaZ == 0)
+                int dx = frameCounter % 2 == 0 ? ddx : -ddx;
+                if (dx == 0 and dz == 0)
                     continue;
 
-                int neighborX = deltaX + centerPos.x;
-                int neighborZ = deltaZ + centerPos.y;
+                glm::ivec2 pos = node.position + glm::ivec2{dx, dz};
 
-                // skip invalid cells
-                if (neighborX < 0 or neighborX >= CHUNK_SIZE or neighborZ < 0 or neighborZ >= CHUNK_SIZE)
+                if (isOutOfBounds(pos))
                     continue;
 
-                int neighborHeight = CHUNK_SIZE - _lzcnt_u64(xzOccupancy[neighborX + neighborZ * CHUNK_SIZE]);
+                // is this distance too far away to be considered
+                float distSq = (pos.x - x) * (pos.x - x) + (pos.y - z) * (pos.y - z);
+                if (distSq >= MAX_RADIUS * MAX_RADIUS)
+                    continue;
 
-                // is neighbor reachable?
-                if (neighborHeight <= centerHeight)
+                // already visited? skip
+                if (visited[pos.x + pos.y * CHUNK_SIZE])
+                    continue;
+
+                uint8_t neighborHeight = myXZHeightMap[pos.x + pos.y * CHUNK_SIZE];
+
+                // not traversable? skip it
+                if (neighborHeight >= startingHeight)
+                    continue;
+
+                // is it a sink?
+                if (neighborHeight < startingHeight - 1)
                 {
-                    walkHeight   = neighborHeight;
-                    walkPosition = {neighborX, neighborZ};
-                    hasMoved     = true;
+                    // DONE! Return first step tag
+                    return node.firstStepTag;
+                }
+                else
+                {
+                    visited[pos.x + pos.y * CHUNK_SIZE] = true;
+                    queue[queueTail++ % MAX_QUEUE] = {pos, node.firstStepTag};
                 }
             }
         }
-        if (!hasMoved)
-            break;
     }
-    return walkHeight;
+
+    return glm::ivec2(0);
 }
 
 void PhysicsEngine::CreateSlopeMap()
 {
-    constexpr int R   = 8;
+    constexpr int R   = 1;
     constexpr int PAD = CHUNK_SIZE + R * 2;
 
     // padded height map. used to avoid branching on invalid voxel positions
