@@ -35,7 +35,6 @@ int main() {
 
   EditorLayer::AddRuntimeEditor(&physicsRuntime);
   EditorLayer::AddStatsEditor(myScene, physicsRuntime);
-  EditorLayer::AddPhysicsDebugEditor(physicsRuntime.GetEngine());
 
   VoxelPainter::SetCurrentChunk(&myScene.GetVoxelChunk());
   VoxelPainter painter;
