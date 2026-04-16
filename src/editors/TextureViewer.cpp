@@ -2,9 +2,9 @@
 
 #include <imgui.h>
 
-void TextureViewer::Draw()
+void TextureViewer::Draw(bool* aIsOpen)
 {
-    ImGui::Begin("Texture Viewer");
+    ImGui::Begin("Texture Viewer", aIsOpen);
     DrawList();
     ImGui::SameLine();
     DrawTextures();

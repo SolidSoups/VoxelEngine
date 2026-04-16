@@ -62,14 +62,34 @@ void EditorLayer::BeginFrame()
         }
     }
 
-    myKeybindsEditor->Draw();
-    myBrushEditor->Draw();
-    myViewportEditor->Draw();
-    myTextureViewer->Draw();
-    if (myStatsEditor)
+    static bool myBrushVisible = true;
+    static bool myControlsVisible = true;
+    static bool myViewportVisible = true;
+    static bool myTextureViewerVisible = true;
+    static bool myStatsEditorVisible = true;
+
+    // draw main menu bar
+    if (ImGui::BeginMainMenuBar())
+    {
+        if(ImGui::BeginMenu("View")){
+            ImGui::MenuItem("Viewport", nullptr, &myViewportVisible);
+            ImGui::MenuItem("Brushes", nullptr, &myBrushVisible);
+            ImGui::MenuItem("Texture Viewer", nullptr, &myTextureViewerVisible);
+            ImGui::MenuItem("Stats", nullptr, &myStatsEditorVisible);
+            ImGui::MenuItem("Controls", nullptr, &myControlsVisible);
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
+
+    if(myControlsVisible) myKeybindsEditor->Draw(&myControlsVisible);
+    if(myBrushVisible) myBrushEditor->Draw(&myBrushVisible);
+    if(myViewportVisible) myViewportEditor->Draw(&myViewportVisible);
+    if(myTextureViewerVisible) myTextureViewer->Draw(&myTextureViewerVisible);
+    if (myStatsEditor and myStatsEditorVisible)
     {
         myStatsEditor->CollectStats();
-        myStatsEditor->Draw();
+        myStatsEditor->Draw(&myStatsEditorVisible);
     }
     for (auto &editor : EditorLayer::myEditors)
     {

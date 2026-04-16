@@ -74,7 +74,7 @@ struct TextureViewerData
 class TextureViewer : public Editor
 {
   public:
-    void Draw() override;
+    void Draw(bool* aIsOpen=nullptr) override;
 
   private:
     void DrawList();

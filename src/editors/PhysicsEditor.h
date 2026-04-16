@@ -10,7 +10,7 @@ class PhysicsEditor : public Editor {
 public:
   PhysicsEditor(PhysicsScheduler* aRuntime);
   ~PhysicsEditor();
-  void Draw() override;
+  void Draw(bool* aIsOpen=nullptr) override;
   void DrawButtonsNotRunning();
   void DrawButtonsRunning(bool isPaused);
 

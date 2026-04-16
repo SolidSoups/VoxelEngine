@@ -1,6 +1,7 @@
 #pragma once
 
-class KeybindsEditor{
+#include "editors/Editor.h"
+class KeybindsEditor : public Editor {
 public:
-  void Draw();
+  void Draw(bool* aIsOpen=nullptr) override;
 };

@@ -12,7 +12,7 @@ class BrushEditor : public Editor{
 public:
   BrushEditor();
   ~BrushEditor();
-  void Draw() override; 
+  void Draw(bool* aIsOpen=nullptr) override; 
 
 private:
   void DrawPalette();

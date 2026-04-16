@@ -35,8 +35,8 @@ PhysicsEditor::PhysicsEditor(PhysicsScheduler *aRuntime) : myRuntime(aRuntime) {
 PhysicsEditor::~PhysicsEditor() {}
 
 #define BAR_CHART_COLOR ImVec4(0.2f, 0.65, 0.0f, 1.0f)
-void PhysicsEditor::Draw() {
-  ImGui::Begin("Runtime");
+void PhysicsEditor::Draw(bool* aIsOpen) {
+  ImGui::Begin("Runtime", aIsOpen);
 
   // display error if we can't run this widget
   if (!myRuntime) {

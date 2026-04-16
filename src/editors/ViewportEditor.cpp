@@ -2,11 +2,10 @@
 #include <imgui.h>
 #include "rendering/Renderer.h"
 #include "rendering/Framebuffer.h"
-#include "app/ApplicationLayer.h"
 #include "editors/EditorIO.h"
 
-void ViewportEditor::Draw() {
-  ImGui::Begin("Viewport", nullptr); 
+void ViewportEditor::Draw(bool* aIsOpen) {
+  ImGui::Begin("Viewport", aIsOpen); 
   ImVec2 size = ImGui::GetContentRegionAvail();
   viewportSize = glm::ivec2(size.x, size.y);
   ImVec2 min = ImGui::GetCursorScreenPos();

@@ -3,5 +3,5 @@
 class Editor {
 public:
   virtual ~Editor() = default;
-  virtual void Draw() = 0;
+  virtual void Draw(bool* aIsOpen=nullptr) = 0;
 };

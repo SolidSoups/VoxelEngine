@@ -4,7 +4,7 @@
 
 class ViewportEditor : public Editor {
 public:
-  void Draw() override;
+  void Draw(bool* aIsOpen=nullptr) override;
 
 public:
   glm::ivec2 viewportSize;

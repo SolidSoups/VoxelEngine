@@ -17,7 +17,7 @@ bool IsItemHidden(const char *label_id);
 StatsEditor::StatsEditor(Scene &aScene, PhysicsScheduler &aRuntime)
     : myScene(aScene), myPhysicsRuntime(aRuntime) {}
 
-void StatsEditor::Draw() {
+void StatsEditor::Draw(bool* aIsOpen) {
   static bool isTriStoneHidden = false;
   static bool isTriSandHidden = false;
   static bool isTriWaterHidden = false;
@@ -25,7 +25,7 @@ void StatsEditor::Draw() {
   static bool isVoxSandHidden = false;
   static bool isVoxWaterHidden = false;
 
-  ImGui::Begin("Statistics");
+  ImGui::Begin("Statistics", aIsOpen);
 
   int count = std::min((int)myFrameCount, (int)1000);
   int offset = myFrameCount >= 1000 ? (myFrameCount % 1000) : 0;

@@ -12,7 +12,7 @@ public:
   StatsEditor &operator=(const StatsEditor &) = delete;
   StatsEditor(StatsEditor &&other) noexcept = default;
 
-  void Draw() override;
+  void Draw(bool* aIsOpen=nullptr) override;
   void CollectStats();
 
 private:
