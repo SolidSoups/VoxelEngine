@@ -5,6 +5,7 @@
 #include <glm/vec3.hpp>
 
 #define CHUNK_SIZE 64
+#define CHUNK_SIZE2 CHUNK_SIZE*CHUNK_SIZE
 #define VOXEL_TYPES 3
 using VoxelIndex  = uint32_t;
 using VoxelBitset = uint64_t;

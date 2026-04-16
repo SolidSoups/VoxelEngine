@@ -1,5 +1,6 @@
 #include "BasicSolver.h"
 #include "physics/VoxelContext.h"
+#include "voxel/VoxelType.h"
 
 bool BasicSolver::FallDown(const VoxelContext &ctx)
 {
@@ -37,7 +38,7 @@ bool BasicSolver::FallDiagonally(const VoxelContext &ctx)
     return true;
 }
 
-bool BasicSolver::FindHorizontalTarget(const VoxelContext &ctx, size_t& aChosenIndex)
+bool BasicSolver::FindHorizontalTarget(const VoxelContext &ctx, size_t &aChosenIndex)
 {
     VoxelIndex candidates[8];
     size_t     count = 0;
@@ -47,13 +48,13 @@ bool BasicSolver::FindHorizontalTarget(const VoxelContext &ctx, size_t& aChosenI
     const VoxelIndex zSliceSize = CHUNK_SIZE * CHUNK_SIZE;
 
     constexpr glm::ivec3 HorizontalTargets[8] = {
-        {0,  0, 1},  // +z
+        {0, 0, 1},  // +z
         {-1, 0, 0}, // -x
-        {0,  0, -1}, // -z
-        {1,  0, 0},  // +x
+        {0, 0, -1}, // -z
+        {1, 0, 0},  // +x
         {-1, 0, 1}, // -x, +z
-        {1,  0, 1},  // +x, +z
-        {1,  0, -1}, // +x, -z
+        {1, 0, 1},  // +x, +z
+        {1, 0, -1}, // +x, -z
         {-1, 0, -1} // -x, -z
     };
 
@@ -78,7 +79,7 @@ bool BasicSolver::FindHorizontalTarget(const VoxelContext &ctx, size_t& aChosenI
     return true;
 }
 
-bool BasicSolver::FindDiagonalTarget(const VoxelContext &ctx, size_t& aChosenIndex)
+bool BasicSolver::FindDiagonalTarget(const VoxelContext &ctx, size_t &aChosenIndex)
 {
     VoxelIndex candidates[8];
     size_t     count = 0;
@@ -148,20 +149,29 @@ bool BasicSolver::PickTargetFromDir(const VoxelContext &ctx, const glm::vec2 &aD
     {
         candidates[count++] = ctx.index + signX;
     }
-    if (canMoveZ and ctx.dst[ctx.index + signZ * CHUNK_SIZE] == VoxelType_EMPTY)
+    if (canMoveZ and ctx.dst[ctx.index + signZ * CHUNK_SIZE * CHUNK_SIZE] == VoxelType_EMPTY)
     {
-        candidates[count++] = ctx.index + signZ * CHUNK_SIZE;
+        candidates[count++] = ctx.index + signZ * CHUNK_SIZE * CHUNK_SIZE;
     }
 
     if (count == 0)
         return false;
 
     // Pick dominant axis
-    size_t chosen;
+    size_t chosenIdx;
     if (count == 1)
-        chosen = candidates[0];
+        chosenIdx = candidates[0];
     else
-        chosen = (fabs(aDir.x) >= fabs(aDir.y)) ? candidates[0] : candidates[1];
+        chosenIdx = (fabs(aDir.x) >= fabs(aDir.y)) ? candidates[0] : candidates[1];
+
+    // only move to a cell with a water neighbor
+    glm::ivec3 tp          = getVoxelGridPosition(chosenIdx);
+    bool       hasNeighbor = (tp.x > 0              and ctx.dst[chosenIdx - 1] == VoxelType_WATER) or
+                             (tp.x < CHUNK_SIZE - 1 and ctx.dst[chosenIdx + 1] == VoxelType_WATER) or
+                             (tp.z > 0              and ctx.dst[chosenIdx - CHUNK_SIZE2] == VoxelType_WATER) or
+                             (tp.z < CHUNK_SIZE - 1 and ctx.dst[chosenIdx + CHUNK_SIZE2] == VoxelType_WATER);
+    if (!hasNeighbor)
+        return false;
 
     outCandidate = (count == 1 or fabs(aDir.x) >= fabs(aDir.y)) ? candidates[0] : candidates[1];
     return true;

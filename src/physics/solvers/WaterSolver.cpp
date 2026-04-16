@@ -67,6 +67,26 @@ bool WaterSolver::SurfaceWaterSpread(const VoxelContext& ctx){
 }
 
 bool WaterSolver::SpreadHorizontally(const VoxelContext& ctx){
+    // wave-driven spread for surface voxels 
+    uint8_t surfaceY = ctx.xzSurfaceHeightMap[ctx.gridPos.x + ctx.gridPos.z * CHUNK_SIZE];
+    bool isSurface = (uint8_t)ctx.gridPos.y == surfaceY - 1;
+    if(isSurface){
+        glm::vec2 vel = ctx.xzWaveVelocity[ctx.gridPos.x + ctx.gridPos.z * CHUNK_SIZE];
+        if(glm::dot(vel, vel) > 0.01f){
+            // if(rand() % 3 == 0)
+            //     return false;
+            size_t chosenIdx;
+            if(myBasicSolver.PickTargetFromDir(ctx, vel, chosenIdx)){
+                ctx.dst[ctx.index] = ctx.dst[chosenIdx];
+                ctx.dst[chosenIdx] = ctx.voxel;
+                ctx.actionMap[chosenIdx] = (uint8_t)VoxelAction::SpreadH;
+                return true;
+            }
+        }
+    }
+    return false;
+
+
     // Add more spread if above is water ???
     bool aboveIsWater = ctx.gridPos.y < CHUNK_SIZE - 1 && ctx.dst[ctx.index + CHUNK_SIZE] == VoxelType_WATER;
     bool weAreWater   = ctx.voxel == VoxelType_WATER;

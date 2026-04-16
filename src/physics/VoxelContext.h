@@ -25,5 +25,6 @@ struct VoxelContext
     const uint8_t   *xzSurfaceHeightMap;
     const glm::vec2 *xzSurfaceSlopeMap;
     const glm::vec2 *xzBFSSlopeMap;
+    const glm::vec2 *xzWaveVelocity;
     uint8_t         *actionMap;
 };

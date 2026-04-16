@@ -9,20 +9,38 @@
 #include "voxel/VoxelChunkViews.h"
 #include "voxel/VoxelType.h"
 #include "VoxelContext.h"
+#include "editors/TextureViewer.h"
 
 PhysicsEngine::PhysicsEngine(Scene &aScene) : myScene(aScene)
 {
-    myXZHeightMap   = new uint8_t[CHUNK_SIZE * CHUNK_SIZE]();
-    myXZSlopeMap    = new glm::vec2[CHUNK_SIZE * CHUNK_SIZE]();
-    myXZBFSSlopeMap = new glm::vec2[CHUNK_SIZE * CHUNK_SIZE]();
-    myActionMap     = new uint8_t[CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE]();
+    myXZWaveVelocity = new glm::vec2[CHUNK_SIZE * CHUNK_SIZE]();
+    myXZHeightMap    = new uint8_t[CHUNK_SIZE * CHUNK_SIZE]();
+    myXZSlopeMap     = new glm::vec2[CHUNK_SIZE * CHUNK_SIZE]();
+    myXZBFSSlopeMap  = new glm::vec2[CHUNK_SIZE * CHUNK_SIZE]();
+    myActionMap      = new uint8_t[CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE]();
+    myGradStep = new glm::vec2[CHUNK_SIZE * CHUNK_SIZE]();
+    myWaveStep = new glm::vec2[CHUNK_SIZE * CHUNK_SIZE]();
+    myCohesionStep = new glm::vec2[CHUNK_SIZE * CHUNK_SIZE]();
+    
+    TextureViewerData::Get().AddEntry<TextureEntry_uint8>(myActionMap, "Action Map", CHUNK_SIZE, CHUNK_SIZE);
+    TextureViewerData::Get().AddEntry<TextureEntry_vec2>(myXZSlopeMap, "Slope Map", CHUNK_SIZE, CHUNK_SIZE);
+    TextureViewerData::Get().AddEntry<TextureEntry_vec2>(myXZBFSSlopeMap, "BFS Slope Map", CHUNK_SIZE, CHUNK_SIZE);
+    TextureViewerData::Get().AddEntry<TextureEntry_vec2>(myGradStep, "Wave Velocity Step 1 (Grad)", CHUNK_SIZE, CHUNK_SIZE);
+    TextureViewerData::Get().AddEntry<TextureEntry_uint8>(myXZHeightMap, "Height Map", CHUNK_SIZE, CHUNK_SIZE);
+    TextureViewerData::Get().AddEntry<TextureEntry_vec2>(myWaveStep, "Wave Velocity Step 2 (Wave)", CHUNK_SIZE, CHUNK_SIZE);
+    TextureViewerData::Get().AddEntry<TextureEntry_vec2>(myCohesionStep, "Wave Velocity Step 3 (Cohesion)", CHUNK_SIZE, CHUNK_SIZE);
+    TextureViewerData::Get().AddEntry<TextureEntry_vec2>(myXZWaveVelocity, "Wave Velocity Step 4 (Sum)", CHUNK_SIZE, CHUNK_SIZE);
 }
 PhysicsEngine::~PhysicsEngine()
 {
+    delete[] myXZWaveVelocity;
     delete[] myXZHeightMap;
     delete[] myXZSlopeMap;
     delete[] myActionMap;
     delete[] myXZBFSSlopeMap;
+    delete[] myGradStep;
+    delete[] myWaveStep;
+    delete[] myCohesionStep;
 }
 
 void PhysicsEngine::SimulateChunk()
@@ -40,6 +58,7 @@ void PhysicsEngine::SimulateChunk()
     VoxelChunk        dst{src}; // copy src into dst so unmoved voxels still exist
 
     CreateHeightMap(myScene.GetChunkViews());
+    UpdateWaveVelocities();
     CreateSlopeMap();
     CreateBFSSlopeMap();
 
@@ -72,6 +91,7 @@ void PhysicsEngine::SimulateChunk()
                                  .xzSurfaceHeightMap = myXZHeightMap,
                                  .xzSurfaceSlopeMap  = myXZSlopeMap,
                                  .xzBFSSlopeMap      = myXZBFSSlopeMap,
+                                 .xzWaveVelocity     = myXZWaveVelocity,
                                  .actionMap          = myActionMap};
 
                 // Simulate voxels
@@ -103,9 +123,71 @@ void PhysicsEngine::SimulateChunk()
     CreateBFSSlopeMap();
 }
 
-PhysicsDebugData PhysicsEngine::GetDebugData() const
+void PhysicsEngine::UpdateWaveVelocities()
 {
-    return {myXZHeightMap, myXZSlopeMap, myActionMap, myXZBFSSlopeMap};
+    float     t   = myFrameCounter * 0.01f;
+    glm::vec2 dir = waterSettings.waveDirection;
+
+    // Diffusion pass: smooth velocity field across neighbors
+    for (int z = 0; z < CHUNK_SIZE; z++)
+    {
+        for (int x = 0; x < CHUNK_SIZE; x++)
+        {
+            int i = x + z * CHUNK_SIZE;
+            if (myXZHeightMap[i] == 0)
+                continue;
+
+            glm::vec2 neighborAvg{};
+            int       count = 0;
+            if (x > 0)            { neighborAvg += myXZWaveVelocity[(x - 1) + z * CHUNK_SIZE]; count++; }
+            if (x < CHUNK_SIZE-1) { neighborAvg += myXZWaveVelocity[(x + 1) + z * CHUNK_SIZE]; count++; }
+            if (z > 0)            { neighborAvg += myXZWaveVelocity[x + (z - 1) * CHUNK_SIZE]; count++; }
+            if (z < CHUNK_SIZE-1) { neighborAvg += myXZWaveVelocity[x + (z + 1) * CHUNK_SIZE]; count++; }
+            if (count > 0)
+                myXZWaveVelocity[i] += waterSettings.diffusion * (neighborAvg / (float)count - myXZWaveVelocity[i]);
+        }
+    }
+
+    // Force accumulation pass
+    for (int z = 0; z < CHUNK_SIZE; z++)
+    {
+        for (int x = 0; x < CHUNK_SIZE; x++)
+        {
+            int i = x + z * CHUNK_SIZE;
+
+            if (myXZHeightMap[i] == 0)
+            {
+                myXZWaveVelocity[i] *= waterSettings.waveDamping;
+                continue;
+            }
+
+            // Terrain gradient: very gentle slope response
+            float hL = x > 0            ? myXZHeightMap[(x - 1) + z * CHUNK_SIZE] : myXZHeightMap[i];
+            float hR = x < CHUNK_SIZE-1 ? myXZHeightMap[(x + 1) + z * CHUNK_SIZE] : myXZHeightMap[i];
+            float hB = z > 0            ? myXZHeightMap[x + (z - 1) * CHUNK_SIZE] : myXZHeightMap[i];
+            float hF = z < CHUNK_SIZE-1 ? myXZHeightMap[x + (z + 1) * CHUNK_SIZE] : myXZHeightMap[i];
+            glm::vec2 grad = {(hR - hL) * 0.5f, (hF - hB) * 0.5f};
+            myGradStep[i] = -waterSettings.waveSpeed * grad;
+
+            // Ambient wave: smooth sinusoidal push with organic warp across the wavefront
+            glm::vec2 perp    = glm::vec2(-dir.y, dir.x);
+            float parallelPos = (x * dir.x + z * dir.y) * waterSettings.waveFrequency;
+            float perpPos     = (x * perp.x + z * perp.y);
+            float posPhase    = parallelPos + 0.6f * glm::sin(perpPos * 0.3f + glm::sin(t * 0.1f));
+            float surgeDir    = glm::sin(t * waterSettings.surgeSpeed);
+            float wave        = glm::sin(t * waterSettings.realWaveSpeed * surgeDir + posPhase);
+            myWaveStep[i]     = dir * waterSettings.ambientStrength * wave;
+
+            myCohesionStep[i] = glm::vec2(0); // cohesion removed; zero for debug view
+
+            myXZWaveVelocity[i] += myGradStep[i] + myWaveStep[i];
+
+            float len = glm::length(myXZWaveVelocity[i]);
+            if (len > waterSettings.maxVelocity)
+                myXZWaveVelocity[i] *= waterSettings.maxVelocity / len;
+            myXZWaveVelocity[i] *= waterSettings.waveDamping;
+        }
+    }
 }
 
 void PhysicsEngine::CreateHeightMap(const VoxelChunkViews &someViews)
@@ -125,7 +207,7 @@ void PhysicsEngine::CreateBFSSlopeMap()
     size_t size = CHUNK_SIZE * CHUNK_SIZE;
     for (size_t ii = 0; ii < size; ii++)
     {
-        size_t i = frameCounter % 2 == 0 ? ii : size-1 - ii;
+        size_t     i             = frameCounter % 2 == 0 ? ii : size - 1 - ii;
         int        x             = i % CHUNK_SIZE;
         int        z             = (i / CHUNK_SIZE) % CHUNK_SIZE;
         glm::ivec2 slopeNeighbor = BreadthFirstSearchSink(x, z);
@@ -137,18 +219,18 @@ glm::ivec2 PhysicsEngine::BreadthFirstSearchSink(int x, int z)
 {
     static int frameCounter = 0;
     frameCounter++;
-     
+
     struct Node
     {
         glm::ivec2 position;
         glm::ivec2 firstStepTag;
     };
     constexpr int MAX_RADIUS = 10;
-    constexpr int    MAX_QUEUE = (2 * MAX_RADIUS + 1) * (2 * MAX_RADIUS + 1); // radius squared
-    Node queue[MAX_QUEUE];
-    int queueHead = 0, queueTail = 0;
-    bool             visited[CHUNK_SIZE * CHUNK_SIZE]{};
-    uint8_t          startingHeight = myXZHeightMap[x + z * CHUNK_SIZE];
+    constexpr int MAX_QUEUE  = (2 * MAX_RADIUS + 1) * (2 * MAX_RADIUS + 1); // radius squared
+    Node          queue[MAX_QUEUE];
+    int           queueHead = 0, queueTail = 0;
+    bool          visited[CHUNK_SIZE * CHUNK_SIZE]{};
+    uint8_t       startingHeight = myXZHeightMap[x + z * CHUNK_SIZE];
 
     // enqueue all neighbors directly next to starting position
     for (int ddz = -1; ddz <= 1; ddz++)
@@ -175,7 +257,7 @@ glm::ivec2 PhysicsEngine::BreadthFirstSearchSink(int x, int z)
                 return glm::ivec2(dx, dz);
 
             // add as initial node
-            queue[queueTail++ % MAX_QUEUE] = {neighborPos, glm::ivec2(dx, dz)};
+            queue[queueTail++ % MAX_QUEUE]                      = {neighborPos, glm::ivec2(dx, dz)};
             visited[neighborPos.x + neighborPos.y * CHUNK_SIZE] = true;
         }
     }
@@ -223,7 +305,7 @@ glm::ivec2 PhysicsEngine::BreadthFirstSearchSink(int x, int z)
                 else
                 {
                     visited[pos.x + pos.y * CHUNK_SIZE] = true;
-                    queue[queueTail++ % MAX_QUEUE] = {pos, node.firstStepTag};
+                    queue[queueTail++ % MAX_QUEUE]      = {pos, node.firstStepTag};
                 }
             }
         }

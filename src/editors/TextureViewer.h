@@ -77,7 +77,7 @@ class TextureViewer : public Editor
     void Draw(bool* aIsOpen=nullptr) override;
 
   private:
-    void DrawList();
+    void DrawList(bool isWindowHovered);
     void DrawTextures();
 
     int                selectedTexture = -1;
